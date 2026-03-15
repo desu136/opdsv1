@@ -51,11 +51,32 @@ export async function PUT(
       const data: any = {};
       if (status) data.status = status;
       if (name) data.name = name;
-      
-      const updatedPharmacy = await prisma.pharmacy.update({
+
+      // Also update the associated user's status if status is provided
+      const pharmacy = await prisma.pharmacy.findUnique({
         where: { id },
-        data
+        select: { ownerId: true }
       });
+
+      if (!pharmacy) {
+        return NextResponse.json({ error: 'Pharmacy not found' }, { status: 404 });
+      }
+
+      const updatedPharmacy = await prisma.$transaction(async (tx) => {
+        const updated = await tx.pharmacy.update({
+          where: { id },
+          data
+        });
+
+        if (status) {
+          await tx.user.update({
+             where: { id: pharmacy.ownerId },
+             data: { status }
+          });
+        }
+        return updated;
+      });
+
       return NextResponse.json(updatedPharmacy, { status: 200 });
     } 
     
