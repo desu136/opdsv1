@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  PHARMACIST
+  DELIVERY_AGENT
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_REVIEW
+}
+
+model User {
+  id         String        @id @default(uuid())
+  name       String
+  email      String        @unique
+  phone      String?       @unique
+  password   String
+  role       Role          @default(CUSTOMER)
+  status     AccountStatus @default(PENDING_REVIEW)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  addresses  Address[]
+  pharmacy   Pharmacy?
+  orders     Order[]
+  deliveries Delivery[]
+  notifications Notification[]
+}
+
+model Address {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  country   String  @default("Ethiopia")
+  city      String
+  subCity   String
+  street    String?
+  isDefault Boolean @default(false)
+}
+
+model Pharmacy {
+  id                 String        @id @default(uuid())
+  ownerId            String        @unique
+  owner              User          @relation(fields: [ownerId], references: [id])
+  name               String
+  email              String        @unique
+  phone              String
+  address            String?
+  licenseNumber      String        @unique
+  licenseDocumentUrl String?
+  status             AccountStatus @default(PENDING_REVIEW)
+  createdAt          DateTime      @default(now())
+
+  inventory Product[]
+  orders    Order[]
+}
+
+model Product {
+  id                   String   @id @default(uuid())
+  pharmacyId           String
+  pharmacy             Pharmacy @relation(fields: [pharmacyId], references: [id])
+  name                 String
+  category             String
+  description          String?
+  price                Float
+  stock                Int
+  requiresPrescription Boolean  @default(false)
+  imageUrl             String?
+  createdAt            DateTime @default(now())
+
+  orderItems OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  customerId      String
+  customer        User        @relation(fields: [customerId], references: [id])
+  pharmacyId      String
+  pharmacy        Pharmacy    @relation(fields: [pharmacyId], references: [id])
+  status          OrderStatus @default(PENDING)
+  totalAmount     Float
+  shippingAddress String?
+  phone           String?
+  notes           String?
+  paymentMethod   String      @default("COD")
+  createdAt       DateTime    @default(now())
+
+  items        OrderItem[]
+  prescription Prescription?
+  delivery     Delivery?
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model Prescription {
+  id          String             @id @default(uuid())
+  orderId     String             @unique
+  order       Order              @relation(fields: [orderId], references: [id])
+  documentUrl String
+  status      PrescriptionStatus @default(PENDING_REVIEW)
+  notes       String?
+}
+
+enum PrescriptionStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model Delivery {
+  id           String         @id @default(uuid())
+  orderId      String         @unique
+  order        Order          @relation(fields: [orderId], references: [id])
+  agentId      String?
+  agent        User?          @relation(fields: [agentId], references: [id])
+  status       DeliveryStatus @default(PENDING)
+  pickupTime   DateTime?
+  deliveryTime DateTime?
+}
+
+enum DeliveryStatus {
+  PENDING
+  ASSIGNED
+  PICKED_UP
+  DELIVERED
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, ORDER, SYSTEM, etc.
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
