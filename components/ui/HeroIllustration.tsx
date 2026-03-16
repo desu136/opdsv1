@@ -7,10 +7,37 @@ import { RealisticCapsule } from './RealisticCapsule';
 
 export function HeroIllustration() {
   const [isMounted, setIsMounted] = React.useState(false);
+  const [orderData, setOrderData] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     setIsMounted(true);
+    fetchLatestOrder();
   }, []);
+
+  const fetchLatestOrder = async () => {
+    try {
+      const res = await fetch('/api/orders/latest');
+      const data = await res.json();
+      if (data.hasActiveOrder) {
+        setOrderData(data.order);
+      }
+    } catch (error) {
+      console.error('Error fetching latest order:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PENDING': return 'Verifying...';
+      case 'PREPARING': return 'Preparing Order';
+      case 'READY': return 'Ready for Pickup';
+      case 'IN_TRANSIT': return 'Out for Delivery';
+      default: return status || 'Processing';
+    }
+  };
 
   if (!isMounted) return (
     <div className="relative w-full aspect-square max-w-lg mx-auto bg-white/80 backdrop-blur-3xl rounded-[3rem] shadow-2xl shadow-primary-900/10 border border-white flex items-center justify-center">
@@ -22,30 +49,42 @@ export function HeroIllustration() {
       
       {/* Dynamic Popups overlapping for visual interest */}
       <motion.div 
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-12 -right-8 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 flex items-center gap-4 hover:scale-105 transition-transform"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
+        transition={{ 
+          opacity: { duration: 0.5 },
+          y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+        }}
+        className="absolute top-12 -right-8 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 flex items-center gap-4 hover:scale-105 transition-transform cursor-pointer"
       >
         <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
           <CheckCircle2 className="h-6 w-6" />
         </div>
         <div>
           <p className="text-xs text-slate-500 font-medium">Order Status</p>
-          <p className="text-sm font-bold text-slate-900">Out for Delivery</p>
+          <p className="text-sm font-bold text-slate-900">
+            {orderData ? getStatusLabel(orderData.status) : 'Out for Delivery'}
+          </p>
         </div>
       </motion.div>
       
       <motion.div 
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-24 -left-12 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 flex items-center gap-4 max-w-[260px] hover:scale-105 transition-transform"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0, y: [0, 10, 0] }}
+        transition={{ 
+          opacity: { duration: 0.5, delay: 0.2 },
+          y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }
+        }}
+        className="absolute bottom-24 -left-12 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 flex items-center gap-4 max-w-[260px] hover:scale-105 transition-transform cursor-pointer"
       >
           <div className="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
             <MapPin className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <p className="text-xs text-slate-500 mb-1">Delivering to</p>
-            <p className="text-sm font-bold text-slate-900 leading-tight">Your Doorstep</p>
+            <p className="text-sm font-bold text-slate-900 leading-tight">
+              {orderData ? (orderData.shippingAddress || 'Your Address') : 'Your Doorstep'}
+            </p>
           </div>
       </motion.div>
 
