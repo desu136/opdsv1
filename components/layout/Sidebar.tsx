@@ -13,7 +13,8 @@ import {
   ClipboardList, 
   Users,
   MapPin,
-  Store
+  Store,
+  Truck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -101,6 +102,7 @@ export const pharmacySidebarItems: SidebarItem[] = [
 export const adminSidebarItems: SidebarItem[] = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Pharmacies', href: '/admin/pharmacies', icon: Store },
+  { name: 'Agents', href: '/admin/agents', icon: Truck },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'All Orders', href: '/admin/orders', icon: ShoppingCart },
   { name: 'Settings', href: '/admin/settings', icon: Settings },

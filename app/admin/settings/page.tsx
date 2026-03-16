@@ -11,10 +11,21 @@ import {
   CreditCard,
   Bell,
   Database,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Loader2
 } from 'lucide-react';
 
 export default function AdminSettingsPage() {
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    // Simulate API call for settings
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsSaving(false);
+    alert('Platform settings saved successfully.');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar />
@@ -116,7 +127,14 @@ export default function AdminSettingsPage() {
                     <Button variant="outline" size="lg" className="rounded-xl px-6 mr-3">
                       Cancel
                     </Button>
-                    <Button variant="primary" size="lg" className="rounded-xl px-8 shadow-md">
+                    <Button 
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      variant="primary" 
+                      size="lg" 
+                      className="rounded-xl px-8 shadow-md"
+                    >
+                      {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
                       Save Platform Settings
                     </Button>
                  </div>

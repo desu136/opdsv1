@@ -27,6 +27,7 @@ model User {
   email      String        @unique
   phone      String?       @unique
   password   String
+  emailVerified DateTime?
   role       Role          @default(CUSTOMER)
   status     AccountStatus @default(PENDING_REVIEW)
   createdAt  DateTime      @default(now())
@@ -37,6 +38,7 @@ model User {
   orders     Order[]
   deliveries Delivery[]
   notifications Notification[]
+  resetTokens   PasswordResetToken[]
 }
 
 model Address {
@@ -163,4 +165,22 @@ model Notification {
   type      String   @default("INFO") // INFO, ORDER, SYSTEM, etc.
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  user      User     @relation(fields: [email], references: [email])
+
+  @@unique([email, token])
 }

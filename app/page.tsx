@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { AnimatedHeroBackground } from '@/components/ui/AnimatedHeroBackground';
 import { HeroIllustration } from '@/components/ui/HeroIllustration';
+import { HeroActions } from '@/components/ui/HeroActions';
 
 export default function Home() {
   return (
@@ -56,15 +57,7 @@ export default function Home() {
                     </Button>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <Button variant="primary" size="lg" className="w-full sm:w-auto rounded-xl shadow-lg shadow-primary-600/20">
-                      Order Medicine
-                    </Button>
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto rounded-xl bg-white hover:bg-slate-50 border-slate-200">
-                      <FileText className="h-5 w-5 mr-2" />
-                      Upload Prescription
-                    </Button>
-                  </div>
+                  <HeroActions />
                 </div>
 
                 <div className="flex justify-center lg:justify-start items-center gap-6 pt-4 text-sm font-medium text-slate-500">
@@ -129,9 +122,11 @@ export default function Home() {
                  </p>
                </div>
                <div className="flex gap-4 w-full md:w-auto">
-                 <Button variant="secondary" size="lg" className="w-full md:w-auto shadow-xl">
-                   Partner With Us
-                 </Button>
+                 <Link href="/register" className="w-full md:w-auto">
+                   <Button variant="secondary" size="lg" className="w-full md:w-auto shadow-xl">
+                     Partner With Us
+                   </Button>
+                 </Link>
                </div>
             </div>
           </div>

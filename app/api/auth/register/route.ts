@@ -1,6 +1,23 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
+import { sendVerificationEmail } from '@/lib/email';
+import crypto from 'crypto';
+
+async function generateAndSendVerification(email: string) {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier: email,
+      token,
+      expires,
+    }
+  });
+
+  await sendVerificationEmail(email, token);
+}
 
 export async function POST(request: Request) {
   try {
@@ -34,6 +51,7 @@ export async function POST(request: Request) {
           status: 'ACTIVE',
         }
       });
+      await generateAndSendVerification(email);
       // Don't return password
       const { password: _, ...userWithoutPassword } = user;
       return NextResponse.json(userWithoutPassword, { status: 201 });
@@ -65,6 +83,8 @@ export async function POST(request: Request) {
         }
       });
       
+      await generateAndSendVerification(email);
+      
       const { password: _, ...userWithoutPassword } = user;
       return NextResponse.json(userWithoutPassword, { status: 201 });
     }
@@ -80,6 +100,7 @@ export async function POST(request: Request) {
           role: 'DELIVERY_AGENT',
         }
       });
+      await generateAndSendVerification(email);
       const { password: _, ...userWithoutPassword } = user;
       return NextResponse.json(userWithoutPassword, { status: 201 });
     }

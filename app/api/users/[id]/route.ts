@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { sendAccountApprovedEmail } from '@/lib/email';
 
 export async function PUT(
   request: Request,
@@ -17,27 +18,58 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, phone } = body;
+    const { name, phone, status } = body;
 
     // Users can only update their own profile, unless Admin
     if (payload.id !== id && payload.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const dataToUpdate: any = {
+      name: name || undefined,
+      phone: phone || undefined,
+    };
+
+    let previousStatus = null;
+    let userRole = null;
+    let userEmail = null;
+    let userName = null;
+
+    // Only Admins can update the status
+    if (status && payload.role === 'ADMIN') {
+      dataToUpdate.status = status;
+      
+      const existingUser = await prisma.user.findUnique({ where: { id } });
+      if (existingUser) {
+        previousStatus = existingUser.status;
+        userRole = existingUser.role;
+        userEmail = existingUser.email;
+        userName = existingUser.name;
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id },
-      data: {
-        name: name || undefined,
-        phone: phone || undefined,
-      },
+      data: dataToUpdate,
       select: {
           id: true,
           name: true,
           email: true,
           role: true,
-          phone: true
+          phone: true,
+          status: true
       }
     });
+
+    // Send email if agent was just approved
+    if (
+      status === 'ACTIVE' && 
+      previousStatus !== 'ACTIVE' && 
+      userRole === 'DELIVERY_AGENT' && 
+      userEmail
+    ) {
+      await sendAccountApprovedEmail(userEmail, 'DELIVERY_AGENT', userName || 'Agent');
+    }
 
     return NextResponse.json(updatedUser, { status: 200 });
 

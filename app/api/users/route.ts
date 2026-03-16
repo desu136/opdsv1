@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
@@ -15,12 +15,22 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const url = new URL(request.url);
+    const role = url.searchParams.get('role');
+    const status = url.searchParams.get('status');
+
+    const whereClause: any = {};
+    if (role) whereClause.role = role;
+    if (status) whereClause.status = status;
+
     const users = await prisma.user.findMany({
+      where: whereClause,
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        status: true,
         createdAt: true,
         pharmacy: { select: { name: true } }
       },
