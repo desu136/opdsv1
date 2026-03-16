@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import { sendAccountApprovedEmail } from '@/lib/email';
+import { sendNotification } from '@/lib/notifications';
 
 export async function PUT(
   request: Request,
@@ -61,18 +61,18 @@ export async function PUT(
       }
     });
 
-    // Non-fatally send email if agent was just approved
+    // Unified Notification (In-App + Email) if agent was just approved
     if (
       status === 'ACTIVE' && 
       previousStatus !== 'ACTIVE' && 
-      userRole === 'DELIVERY_AGENT' && 
-      userEmail
+      userRole === 'DELIVERY_AGENT'
     ) {
-      try {
-        await sendAccountApprovedEmail(userEmail, 'DELIVERY_AGENT', userName || 'Agent');
-      } catch (emailErr) {
-        console.error('Approval email send failed (agent approved OK):', emailErr);
-      }
+      await sendNotification({
+        userId: id,
+        title: 'Account Approved! 🎉',
+        message: `Hello ${userName || 'Agent'}, your delivery agent account has been approved. You can now start fulfilling deliveries.`,
+        type: 'SYSTEM'
+      });
     }
 
     return NextResponse.json(updatedUser, { status: 200 });

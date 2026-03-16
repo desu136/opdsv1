@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
 import { pusherServer } from './pusher';
+import { sendNotificationEmail } from './email';
 
 export async function sendNotification({
   userId,
@@ -24,9 +25,21 @@ export async function sendNotification({
     });
 
     // 2. Trigger real-time event via Pusher
-    // Channel name: user-[userId]
-    // Event name: notification-new
     await pusherServer.trigger(`user-${userId}`, 'notification-new', notification);
+
+    // 3. (Optional but requested) Send email notification
+    // We do this non-fatally
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true }
+      });
+      if (user?.email) {
+        await sendNotificationEmail(user.email, title, message);
+      }
+    } catch (emailErr) {
+      console.error('Failed to send mirroring email notification:', emailErr);
+    }
 
     return notification;
   } catch (error) {

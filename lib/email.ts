@@ -132,3 +132,37 @@ export const sendAccountApprovedEmail = async (email: string, role: string, name
     return { success: false, error };
   }
 };
+
+export const sendNotificationEmail = async (email: string, title: string, message: string) => {
+  const mailOptions = {
+    from: `"${process.env.NEXT_PUBLIC_APP_NAME || 'EthioPharma Delivery'}" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
+    to: email,
+    subject: `New Notification: ${title}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+          <h2 style="color: #1e293b; margin: 0;">${process.env.NEXT_PUBLIC_APP_NAME || 'EthioPharma'}</h2>
+        </div>
+        <div style="padding: 24px; background-color: #ffffff;">
+          <h3 style="color: #0f172a; margin-top: 0;">${title}</h3>
+          <p style="color: #334155; font-size: 16px; line-height: 1.6;">${message}</p>
+          <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #f1f5f9;">
+            <p style="color: #64748b; font-size: 14px; margin: 0;">You received this email because you have notifications enabled.</p>
+          </div>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    if (!process.env.SMTP_USER) {
+      console.log(`[DEV MODE] Notification Email for ${email}: ${title} - ${message}`);
+      return { success: true };
+    }
+    await transporter.sendMail(mailOptions);
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending notification email:", error);
+    return { success: false, error };
+  }
+};

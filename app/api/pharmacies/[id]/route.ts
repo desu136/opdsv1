@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import { sendAccountApprovedEmail } from '@/lib/email';
+import { sendNotification } from '@/lib/notifications';
 
 export async function GET(
   request: Request,
@@ -78,16 +78,14 @@ export async function PUT(
         return updated;
       });
 
-      // Non-fatally send approval email
+      // Unified Notification (In-App + Email) if just approved
       if (status === 'ACTIVE') {
-        try {
-          const ownerInfo = await prisma.user.findUnique({ where: { id: pharmacy.ownerId }, select: { email: true, name: true } });
-          if (ownerInfo) {
-            await sendAccountApprovedEmail(ownerInfo.email, 'PHARMACIST', ownerInfo.name);
-          }
-        } catch (emailErr) {
-          console.error('Approval email send failed (pharmacy approved OK):', emailErr);
-        }
+        await sendNotification({
+          userId: pharmacy.ownerId,
+          title: 'Pharmacy Approved! 🎉',
+          message: 'Your pharmacy profile has been approved. You can now manage your inventory and receive orders.',
+          type: 'SYSTEM'
+        });
       }
 
       return NextResponse.json(updatedPharmacy, { status: 200 });
