@@ -54,9 +54,15 @@ export default function AdminPharmaciesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      if (res.ok) fetchPharmacies();
-    } catch (err) {
+      if (res.ok) {
+        fetchPharmacies();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Failed to approve: ${errData.error || res.statusText}`);
+      }
+    } catch (err: any) {
       console.error(err);
+      alert(`Network error: ${err.message}`);
     } finally {
       setUpdatingId(null);
     }

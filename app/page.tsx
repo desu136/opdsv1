@@ -13,6 +13,7 @@ import {
   FileText
 } from 'lucide-react';
 import { AnimatedHeroBackground } from '@/components/ui/AnimatedHeroBackground';
+import { HeroIllustration } from '@/components/ui/HeroIllustration';
 
 export default function Home() {
   return (
@@ -80,55 +81,7 @@ export default function Home() {
 
               {/* Hero Image Area */}
               <div className="lg:w-1/2 relative hidden md:block">
-                <div className="relative w-full aspect-square max-w-lg mx-auto bg-white/80 backdrop-blur-3xl rounded-[3rem] shadow-2xl shadow-primary-900/10 border border-white flex items-center justify-center overflow-visible">
-                  
-                  {/* Mock UI overlapping for visual interest */}
-                  <div className="absolute top-12 -right-8 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 flex items-center gap-4 animate-bounce hover:scale-105 transition-transform" style={{ animationDuration: '3s' }}>
-                    <div className="bg-green-100 p-3 rounded-xl text-green-600">
-                      <CheckCircle2 className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 font-medium">Order Status</p>
-                      <p className="text-sm font-bold text-slate-900">Out for Delivery</p>
-                    </div>
-                  </div>
-                  
-                  <div className="absolute bottom-24 -left-12 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 flex items-center gap-4 max-w-[260px] animate-bounce hover:scale-105 transition-transform" style={{ animationDuration: '4s', animationDelay: '1s' }}>
-                     <div className="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
-                       <MapPin className="h-6 w-6 text-primary-600" />
-                     </div>
-                     <div>
-                       <p className="text-xs text-slate-500 mb-1">Delivering to</p>
-                       <p className="text-sm font-bold text-slate-900 leading-tight">Bole Ruanda, Addis Ababa</p>
-                     </div>
-                  </div>
-
-                  {/* Central App Mockup */}
-                  <div className="w-[65%] h-[80%] bg-slate-50 rounded-[2rem] border-4 border-white shadow-inner relative overflow-hidden flex flex-col">
-                    <div className="bg-primary-600 p-4 text-white text-center font-bold shadow-md relative z-10">
-                      TenaCare App
-                    </div>
-                    <div className="p-4 space-y-3 relative z-10">
-                       <div className="h-24 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center p-3 gap-3">
-                         <div className="h-16 w-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-lg shrink-0"></div>
-                         <div className="space-y-2 flex-1">
-                           <div className="h-3 bg-slate-200 rounded w-3/4"></div>
-                           <div className="h-3 bg-slate-100 rounded w-1/2"></div>
-                         </div>
-                       </div>
-                       <div className="h-24 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center p-3 gap-3">
-                         <div className="h-16 w-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg shrink-0"></div>
-                         <div className="space-y-2 flex-1">
-                           <div className="h-3 bg-slate-200 rounded w-2/3"></div>
-                           <div className="h-3 bg-slate-100 rounded w-1/2"></div>
-                         </div>
-                       </div>
-                    </div>
-                    {/* Soft glowing background in the mockup */}
-                    <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-primary-100/50 to-transparent pointer-events-none"></div>
-                  </div>
-
-                </div>
+                <HeroIllustration />
               </div>
             </div>
           </div>

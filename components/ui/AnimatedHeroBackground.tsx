@@ -2,15 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
-
-// Custom SVG components for medical icons
-const Capsule = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M17.5 6.5l-11 11a5 5 0 0 1-7-7l11-11a5 5 0 0 1 7 7z" />
-    <path d="M12 12l5.5-5.5" opacity="0.4" />
-  </svg>
-);
+import { Plus, Truck } from 'lucide-react';
+import { RealisticCapsule } from './RealisticCapsule';
 
 const Molecule = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
@@ -46,7 +39,7 @@ export function AnimatedHeroBackground() {
   if (!isMounted) return null;
 
   return (
-    <div className="absolute inset-0 overflow-hidden z-[-1] pointer-events-none opacity-80">
+    <div className="absolute inset-0 overflow-hidden z-[-1] pointer-events-none opacity-100">
       {/* Soft gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-50/80 via-white to-secondary-50/50"></div>
 
@@ -74,22 +67,57 @@ export function AnimatedHeroBackground() {
           rotate: [0, 10, -10, 0]
         }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[15%] right-[25%] text-primary-300/40"
+        className="absolute top-[15%] right-[25%] text-primary-400/60"
       >
-        <Plus className="w-16 h-16" strokeWidth={3} />
+        <Plus className="w-20 h-20" strokeWidth={3} />
       </motion.div>
 
-      {/* 2. Medicine Capsule */}
+      {/* Realistic Capsules Floating */}
       <motion.div
         animate={{ 
           y: [0, 30, 0],
           x: [0, -15, 0],
           rotate: [45, 60, 45]
         }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute top-[40%] left-[15%] text-secondary-400/30"
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute top-[35%] left-[10%] opacity-40 blur-[1px]"
       >
-        <Capsule className="w-12 h-12" />
+        <RealisticCapsule className="w-32 h-14" />
+      </motion.div>
+
+      <motion.div
+        animate={{ 
+          y: [0, -40, 0],
+          x: [0, 25, 0],
+          rotate: [-20, 10, -20]
+        }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute bottom-[30%] left-[20%] opacity-30"
+      >
+        <RealisticCapsule className="w-24 h-10" />
+      </motion.div>
+
+      <motion.div
+        animate={{ 
+          y: [0, -50, 0],
+          x: [0, -20, 0],
+          rotate: [120, 140, 120]
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        className="absolute top-[15%] right-[20%] opacity-20 blur-[2px]"
+      >
+        <RealisticCapsule className="w-40 h-16" />
+      </motion.div>
+
+      <motion.div
+        animate={{ 
+          y: [0, 25, 0],
+          rotate: [15, -10, 15]
+        }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        className="absolute bottom-[25%] right-[30%] opacity-30"
+      >
+        <RealisticCapsule className="w-20 h-8" />
       </motion.div>
 
       {/* 3. Molecule / DNA abstract */}
@@ -99,9 +127,33 @@ export function AnimatedHeroBackground() {
           rotate: [0, 45, 0]
         }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-[20%] right-[15%] text-primary-400/20"
+        className="absolute bottom-[15%] right-[15%] text-primary-500/50"
       >
-        <Molecule className="w-20 h-20" />
+        <Molecule className="w-24 h-24" />
+      </motion.div>
+
+      {/* 4. Delivery Concept - Bouncing Truck */}
+      <motion.div
+        animate={{ 
+          x: [0, 60, 0],
+          y: [0, -15, 0],
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        className="absolute top-[20%] left-[35%] text-emerald-500/60"
+      >
+        <Truck className="w-16 h-16" />
+      </motion.div>
+
+      {/* 5. Fast Delivery Trail moving across screen */}
+      <motion.div
+         animate={{
+            x: ['-20vw', '100vw']
+         }}
+         transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+         className="absolute top-[65%] -left-20 text-indigo-500/50 flex items-center gap-4"
+      >
+         <Truck className="w-20 h-20" />
+         <div className="w-32 h-2 bg-gradient-to-l from-indigo-500/60 to-transparent rounded-full" />
       </motion.div>
 
       {/* Tiny glowing particles */}
