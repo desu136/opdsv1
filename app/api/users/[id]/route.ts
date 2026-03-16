@@ -61,14 +61,18 @@ export async function PUT(
       }
     });
 
-    // Send email if agent was just approved
+    // Non-fatally send email if agent was just approved
     if (
       status === 'ACTIVE' && 
       previousStatus !== 'ACTIVE' && 
       userRole === 'DELIVERY_AGENT' && 
       userEmail
     ) {
-      await sendAccountApprovedEmail(userEmail, 'DELIVERY_AGENT', userName || 'Agent');
+      try {
+        await sendAccountApprovedEmail(userEmail, 'DELIVERY_AGENT', userName || 'Agent');
+      } catch (emailErr) {
+        console.error('Approval email send failed (agent approved OK):', emailErr);
+      }
     }
 
     return NextResponse.json(updatedUser, { status: 200 });

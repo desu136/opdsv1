@@ -39,8 +39,12 @@ export async function POST(request: Request) {
       }
     });
 
-    // Send the email
-    await sendPasswordResetEmail(email, token);
+    // Send the email — non-fatal if SMTP fails
+    try {
+      await sendPasswordResetEmail(email, token);
+    } catch (emailError) {
+      console.error('Password reset email send failed:', emailError);
+    }
 
     return NextResponse.json({ success: true, message: 'If an account matches, a reset link was sent.' }, { status: 200 });
 

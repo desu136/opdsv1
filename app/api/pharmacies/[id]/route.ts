@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { sendAccountApprovedEmail } from '@/lib/email';
 
 export async function GET(
   request: Request,
@@ -76,6 +77,18 @@ export async function PUT(
         }
         return updated;
       });
+
+      // Non-fatally send approval email
+      if (status === 'ACTIVE') {
+        try {
+          const ownerInfo = await prisma.user.findUnique({ where: { id: pharmacy.ownerId }, select: { email: true, name: true } });
+          if (ownerInfo) {
+            await sendAccountApprovedEmail(ownerInfo.email, 'PHARMACIST', ownerInfo.name);
+          }
+        } catch (emailErr) {
+          console.error('Approval email send failed (pharmacy approved OK):', emailErr);
+        }
+      }
 
       return NextResponse.json(updatedPharmacy, { status: 200 });
     } 

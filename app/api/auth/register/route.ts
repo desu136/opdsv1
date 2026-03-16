@@ -5,18 +5,24 @@ import { sendVerificationEmail } from '@/lib/email';
 import crypto from 'crypto';
 
 async function generateAndSendVerification(email: string) {
-  const token = crypto.randomBytes(32).toString('hex');
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  try {
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token,
-      expires,
-    }
-  });
+    // Remove any old unused tokens for this email first
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: email }
+    });
 
-  await sendVerificationEmail(email, token);
+    await prisma.verificationToken.create({
+      data: { identifier: email, token, expires }
+    });
+
+    await sendVerificationEmail(email, token);
+  } catch (emailError) {
+    // Non-fatal: log the error but don't fail registration
+    console.error('Email verification send failed (user was still created):', emailError);
+  }
 }
 
 export async function POST(request: Request) {
