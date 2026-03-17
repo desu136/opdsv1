@@ -18,7 +18,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, phone, status } = body;
+    const { name, phone, status, image } = body;
 
     // Users can only update their own profile, unless Admin
     if (payload.id !== id && payload.role !== 'ADMIN') {
@@ -28,6 +28,7 @@ export async function PUT(
     const dataToUpdate: any = {
       name: name || undefined,
       phone: phone || undefined,
+      image: image || undefined,
     };
 
     let previousStatus = null;

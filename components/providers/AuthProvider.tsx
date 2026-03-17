@@ -9,6 +9,7 @@ type User = {
   email: string;
   phone?: string;
   status?: string;
+  image?: string;
   role: 'CUSTOMER' | 'PHARMACIST' | 'DELIVERY_AGENT' | 'ADMIN';
   pharmacy?: { id: string, name: string };
 };

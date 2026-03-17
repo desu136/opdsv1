@@ -48,8 +48,12 @@ export const DashboardHeader = ({ onMenuClick, title }: DashboardHeaderProps) =>
             <span className="text-sm font-semibold text-slate-800 leading-none">{user?.name}</span>
             <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{user?.role}</span>
           </div>
-          <div className="h-9 w-9 bg-primary-100 rounded-xl flex items-center justify-center text-primary-700 font-bold border border-primary-200 shadow-sm">
-            {user?.name?.charAt(0) || <User className="h-5 w-5" />}
+          <div className="h-9 w-9 bg-primary-100 rounded-xl overflow-hidden flex items-center justify-center text-primary-700 font-bold border border-primary-200 shadow-sm shrink-0">
+            {user?.image ? (
+              <img src={user.image} alt={user.name} className="h-full w-full object-cover" />
+            ) : (
+              user?.name?.charAt(0) || <User className="h-5 w-5" />
+            )}
           </div>
         </div>
       </div>

@@ -51,7 +51,7 @@ export const Sidebar = ({
   className
 }: SidebarProps) => {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -94,8 +94,12 @@ export const Sidebar = ({
             {userRole} Portal
           </p>
           <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-             <div className="h-10 w-10 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center text-primary-600 font-bold shrink-0">
-               {userName.charAt(0)}
+             <div className="h-10 w-10 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex items-center justify-center text-primary-600 font-bold shrink-0">
+               {(user as any)?.image ? (
+                 <img src={(user as any).image} alt={userName} className="h-full w-full object-cover" />
+               ) : (
+                 userName.charAt(0)
+               )}
              </div>
              <div className="min-w-0">
                <p className="font-bold text-slate-900 truncate text-sm">{userName}</p>
@@ -123,6 +127,7 @@ export const Sidebar = ({
                 isCollapsed && !isMobile && "justify-center px-0"
               )}
               title={isCollapsed ? item.name : undefined}
+              onClick={() => isMobile && onClose && onClose()}
             >
               <Icon className={cn("h-5 w-5 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-400 group-hover:text-primary-500")} />
               {(!isCollapsed || isMobile) && (
@@ -142,7 +147,10 @@ export const Sidebar = ({
       {/* Footer / Toggle Section */}
       <div className="p-4 mt-auto border-t border-slate-100 space-y-2">
         <button 
-          onClick={handleLogout} 
+          onClick={() => {
+            handleLogout();
+            if (isMobile && onClose) onClose();
+          }}
           className={cn(
             "flex items-center gap-3 px-3 py-3 rounded-2xl font-medium text-red-600 hover:bg-red-50 w-full transition-all group",
             isCollapsed && !isMobile && "justify-center px-0"
