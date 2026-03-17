@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Sidebar, pharmacySidebarItems } from '@/components/layout/Sidebar';
+import Link from 'next/link';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { pharmacySidebarItems } from '@/components/layout/Sidebar';
 import { 
   Package, 
   ShoppingCart, 
@@ -84,7 +85,6 @@ export default function PharmacyDashboard() {
 
   if (!user) return null;
 
-
   // Filter orders based on tab
   const filteredOrders = orders.filter(o => {
     if (activeTab === 'new') return o.status === 'PENDING';
@@ -104,34 +104,19 @@ export default function PharmacyDashboard() {
   const lowStockItems = inventory.filter(p => p.stock <= 10).slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          items={pharmacySidebarItems} 
-          userRole="Pharmacy" 
-          userName={user.pharmacy?.name || user.name} 
-        />
-
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-               <h1 className="text-2xl font-bold text-slate-900">Store Dashboard</h1>
-               <p className="text-slate-500">Manage your orders, inventory, and dispensing.</p>
-            </div>
-            <div className="flex items-center gap-3">
-               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                 <input type="text" placeholder="Search orders..." className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-               </div>
-               <Button variant="outline" className="relative p-2 rounded-xl">
-                 <Bell className="h-5 w-5 text-slate-600" />
-                 <span className="absolute top-1 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
-               </Button>
-            </div>
-          </div>
+    <DashboardLayout 
+      items={pharmacySidebarItems} 
+      title="Store Dashboard"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+           <h1 className="text-2xl font-bold text-slate-900">Manage Orders</h1>
+           <p className="text-slate-500">Inventory and dispensing overview.</p>
+        </div>
+        <div className="flex items-center gap-3">
+           <Button variant="primary" className="rounded-xl px-4">Download Orders</Button>
+        </div>
+      </div>
 
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -288,8 +273,6 @@ export default function PharmacyDashboard() {
               </div>
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }

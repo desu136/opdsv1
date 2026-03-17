@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { agentSidebarItems } from '@/components/layout/Sidebar';
 
-// Mobile-first design pattern for the Delivery Agent
+// Unified layout for the Delivery Agent
 export default function AgentDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('current'); // current, queue
@@ -94,36 +96,20 @@ export default function AgentDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center max-w-md mx-auto border-x border-slate-200">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-primary-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans max-w-md mx-auto shadow-2xl relative border-x border-slate-200">
+    <DashboardLayout 
+      items={agentSidebarItems} 
+      title="Agent Portal"
+    >
       
-      {/* Mobile App Header */}
-      <header className="bg-white p-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold border border-primary-200">
-            {user?.name?.split(' ').map((n: any) => n[0]).join('') || 'DT'}
-          </div>
-          <div>
-            <h1 className="font-bold text-slate-900 leading-tight">{user?.name}</h1>
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              <span className="text-xs font-semibold text-slate-500">Online</span>
-            </div>
-          </div>
-        </div>
-        <button className="p-2 text-slate-400 hover:text-slate-600">
-          <Menu className="h-6 w-6" />
-        </button>
-      </header>
-
       {/* Tabs */}
-      <div className="flex bg-white px-2 pt-2 border-b border-slate-200 sticky top-[72px] z-20">
+      <div className="flex bg-white px-2 pt-2 border-b border-slate-200 sticky top-0 md:top-[-32px] z-20 rounded-t-2xl">
         <button 
           onClick={() => setActiveTab('current')} 
           className={`flex-1 pb-3 text-sm font-bold text-center border-b-2 transition-colors ${activeTab === 'current' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500'}`}
@@ -138,7 +124,7 @@ export default function AgentDashboard() {
         </button>
       </div>
 
-      <main className="flex-1 overflow-y-auto pb-24 px-4 pt-6">
+      <div className="pb-24 pt-6">
         
         {activeTab === 'current' ? (
           <div className="space-y-6">
@@ -271,8 +257,7 @@ export default function AgentDashboard() {
           </div>
         )}
 
-      </main>
-
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

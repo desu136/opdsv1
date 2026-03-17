@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, 
   Package, 
@@ -14,11 +15,15 @@ import {
   Users,
   MapPin,
   Store,
-  Truck
+  Truck,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Pill
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface SidebarItem {
+export interface SidebarItem {
   name: string;
   href: string;
   icon: React.ElementType;
@@ -28,28 +33,80 @@ interface SidebarProps {
   items: SidebarItem[];
   userRole: 'Customer' | 'Pharmacy' | 'Admin' | 'Agent';
   userName: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
+  isMobile?: boolean;
+  onClose?: () => void;
+  className?: string;
 }
 
-export const Sidebar = ({ items, userRole, userName }: SidebarProps) => {
+export const Sidebar = ({ 
+  items, 
+  userRole, 
+  userName, 
+  isCollapsed = false, 
+  onToggleCollapse,
+  isMobile = false,
+  onClose,
+  className
+}: SidebarProps) => {
   const pathname = usePathname();
-  const router = useRouter();
   const { logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    // Assuming logout redirects to /login, but AuthProvider router.push does that.
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 h-[calc(100vh-4rem)] sticky top-16 hidden md:flex flex-col">
-      <div className="p-6">
-        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-          {userRole} Portal
-        </h2>
-        <p className="font-semibold text-slate-800 truncate">{userName}</p>
+    <aside 
+      className={cn(
+        "bg-white border-r border-slate-200 h-screen flex flex-col transition-all duration-300 relative",
+        isMobile ? "w-full" : isCollapsed ? "w-20" : "w-72",
+        className
+      )}
+    >
+      {/* Brand / Logo Section */}
+      <div className={cn(
+        "p-6 flex items-center gap-3 border-b border-slate-50",
+        isCollapsed && !isMobile ? "justify-center" : "justify-between"
+      )}>
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="bg-primary-600 p-2 rounded-xl group-hover:scale-105 transition-transform">
+            <Pill className="h-6 w-6 text-white" />
+          </div>
+          {(!isCollapsed || isMobile) && (
+            <span className="text-xl font-bold bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent">
+              EthioPharma
+            </span>
+          )}
+        </Link>
+        {isMobile && (
+          <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-50 rounded-lg">
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+      {/* User Info Section (Only when expanded) */}
+      {(!isCollapsed || isMobile) && (
+        <div className="px-6 py-8">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+            {userRole} Portal
+          </p>
+          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+             <div className="h-10 w-10 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center text-primary-600 font-bold shrink-0">
+               {userName.charAt(0)}
+             </div>
+             <div className="min-w-0">
+               <p className="font-bold text-slate-900 truncate text-sm">{userName}</p>
+               <p className="text-xs text-slate-500 truncate">active</p>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto py-4 scrollbar-hide">
         {items.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
@@ -59,24 +116,56 @@ export const Sidebar = ({ items, userRole, userName }: SidebarProps) => {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors cursor-pointer",
+                "flex items-center gap-3 px-3 py-3 rounded-2xl font-medium transition-all duration-200 group relative",
                 isActive 
-                  ? "bg-primary-50 text-primary-700" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-primary-600 text-white shadow-lg shadow-primary-600/20" 
+                  : "text-slate-600 hover:bg-slate-50 hover:text-primary-600",
+                isCollapsed && !isMobile && "justify-center px-0"
               )}
+              title={isCollapsed ? item.name : undefined}
             >
-              <Icon className={cn("h-5 w-5", isActive ? "text-primary-600" : "text-slate-400")} />
-              {item.name}
+              <Icon className={cn("h-5 w-5 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-400 group-hover:text-primary-500")} />
+              {(!isCollapsed || isMobile) && (
+                <span className="truncate">{item.name}</span>
+              )}
+              {isActive && !isCollapsed && (
+                <motion.div 
+                  layoutId="active-pill" 
+                  className="absolute right-2 w-1.5 h-6 bg-white/30 rounded-full"
+                />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-200">
-        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-red-600 hover:bg-red-50 w-full transition-colors">
-          <LogOut className="h-5 w-5" />
-          Logout
+      {/* Footer / Toggle Section */}
+      <div className="p-4 mt-auto border-t border-slate-100 space-y-2">
+        <button 
+          onClick={handleLogout} 
+          className={cn(
+            "flex items-center gap-3 px-3 py-3 rounded-2xl font-medium text-red-600 hover:bg-red-50 w-full transition-all group",
+            isCollapsed && !isMobile && "justify-center px-0"
+          )}
+          title={isCollapsed ? "Logout" : undefined}
+        >
+          <LogOut className="h-5 w-5 shrink-0 group-hover:rotate-12 transition-transform" />
+          {(!isCollapsed || isMobile) && <span>Logout Account</span>}
         </button>
+
+        {!isMobile && onToggleCollapse && (
+          <button 
+            onClick={onToggleCollapse}
+            className="hidden lg:flex items-center justify-center w-full py-2 text-slate-400 hover:text-primary-600 transition-colors"
+          >
+            {isCollapsed ? <ChevronRight className="h-5 w-5" /> : (
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
+                <ChevronLeft className="h-4 w-4" /> 
+                Collapse Sidebar
+              </div>
+            )}
+          </button>
+        )}
       </div>
     </aside>
   );

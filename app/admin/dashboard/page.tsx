@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
-import { Sidebar, adminSidebarItems } from '@/components/layout/Sidebar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { adminSidebarItems } from '@/components/layout/Sidebar';
 import { 
   Users, 
   Store, 
@@ -20,22 +20,19 @@ import {
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
 
-// Recent activity is now fetched dynamically
-
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [pendingPharmacies, setPendingPharmacies] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchAdminData = async () => {
     try {
       const [statsRes, pharRes, recentRes] = await Promise.all([
         fetch('/api/admin/stats'),
         fetch('/api/pharmacies?status=PENDING_REVIEW'),
-        fetch('/api/users') // Reusing this for activity or creating new endpoint
+        fetch('/api/users')
       ]);
       
       if (statsRes.ok && pharRes.ok) {
@@ -64,36 +61,24 @@ export default function AdminDashboard() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user?.role === 'ADMIN') fetchAdminData();
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          items={adminSidebarItems} 
-          userRole="Admin" 
-          userName="Super Administrator" 
-        />
-
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-               <h1 className="text-2xl font-bold text-slate-900">Platform Overview</h1>
-               <p className="text-slate-500">Monitor system health, users, and financials.</p>
-            </div>
-            <div className="flex items-center gap-3">
-               <div className="relative hidden md:block">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                 <input type="text" placeholder="Search platform..." className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-64" />
-               </div>
-               <Button variant="primary" className="rounded-xl px-4">Generate Report</Button>
-            </div>
-          </div>
+    <DashboardLayout 
+      items={adminSidebarItems} 
+      title="Platform Overview"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+           <h1 className="text-2xl font-bold text-slate-900">System Analytics</h1>
+           <p className="text-slate-500">Monitor health, users, and financials.</p>
+        </div>
+        <div className="flex items-center gap-3">
+           <Button variant="primary" className="rounded-xl px-4">Generate Report</Button>
+        </div>
+      </div>
 
           {/* System KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -234,10 +219,7 @@ export default function AdminDashboard() {
 
             </div>
 
-          </div>
-
-        </main>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Sidebar, customerSidebarItems } from '@/components/layout/Sidebar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { customerSidebarItems } from '@/components/layout/Sidebar';
 import { OrderCard, OrderProps } from '@/components/ui/OrderCard';
 import { Search, Heart, Clock, Bell, Settings, Loader2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -63,35 +63,23 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          items={customerSidebarItems} 
-          userRole="Customer" 
-          userName={user.name} 
-        />
-
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          
-          {/* Welcome Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Welcome back, {user.name.split(' ')[0]}! 👋</h1>
-              <p className="text-slate-500">Here's what's happening with your health orders.</p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="relative p-2 rounded-xl">
-                <Bell className="h-5 w-5 text-slate-600" />
-                <span className="absolute top-1.5 right-2 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-              </Button>
-              <Button variant="primary">
-                New Order
-              </Button>
-            </div>
-          </div>
+    <DashboardLayout 
+      items={customerSidebarItems} 
+      title="Customer Dashboard"
+    >
+      {/* Welcome Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Welcome back, {user.name.split(' ')[0]}! 👋</h1>
+          <p className="text-slate-500">Here's what's happening with your health orders.</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <Button variant="primary">
+            New Order
+          </Button>
+        </div>
+      </div>
 
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -196,8 +184,6 @@ export default function CustomerDashboard() {
 
           </div>
 
-        </main>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }
