@@ -18,13 +18,39 @@ export async function GET(request: Request) {
       whereClause.name = { contains: search };
     }
 
-    const products = await prisma.product.findMany({
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+
+    let products = await prisma.product.findMany({
       where: whereClause,
       include: {
-        pharmacy: { select: { name: true, id: true } }
+        pharmacy: { select: { name: true, id: true, lat: true, lng: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
+
+    if (lat && lng) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+      
+      products = products.map((product: any) => {
+        const p = product.pharmacy;
+        if (p.lat === null || p.lng === null) {
+          return { ...product, pharmacy: { ...p, distance: null } };
+        }
+
+        const R = 6371; // km
+        const dLat = (p.lat - userLat) * Math.PI / 180;
+        const dLon = (p.lng - userLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(userLat * Math.PI / 180) * Math.cos(p.lat * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const d = R * c;
+        
+        return { ...product, pharmacy: { ...p, distance: parseFloat(d.toFixed(1)) } };
+      });
+    }
 
     return NextResponse.json(products, { status: 200 });
 

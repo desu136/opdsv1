@@ -82,6 +82,8 @@ export async function POST(request: Request) {
       items, 
       prescriptionUrl, 
       shippingAddress, 
+      lat,
+      lng,
       phone, 
       notes, 
       paymentMethod 
@@ -130,9 +132,13 @@ export async function POST(request: Request) {
            customerId: payload.id,
            pharmacyId,
            totalAmount: finalTotal,
-           shippingAddress,
-           phone,
-           notes,
+           shippingAddress: shippingAddress || (lat && lng ? 'Detected Phone Location' : null),
+           // @ts-ignore
+           lat: lat ? parseFloat(lat.toString()) : null,
+           // @ts-ignore
+           lng: lng ? parseFloat(lng.toString()) : null,
+           phone, 
+           notes, 
            paymentMethod,
            status: requiresRx ? 'PENDING' : 'PREPARING', 
            items: {

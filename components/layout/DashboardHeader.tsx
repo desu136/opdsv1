@@ -50,7 +50,7 @@ export const DashboardHeader = ({ onMenuClick, title }: DashboardHeaderProps) =>
           </div>
           <div className="h-9 w-9 bg-primary-100 rounded-xl overflow-hidden flex items-center justify-center text-primary-700 font-bold border border-primary-200 shadow-sm shrink-0">
             {user?.image ? (
-              <img src={user.image} alt={user.name} className="h-full w-full object-cover" />
+              <img src={user.image} alt={user.name || 'User Avatar'} className="h-full w-full object-cover" />
             ) : (
               user?.name?.charAt(0) || <User className="h-5 w-5" />
             )}

@@ -1,21 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Sidebar, agentSidebarItems } from '@/components/layout/Sidebar';
+import { agentSidebarItems } from '@/components/layout/Sidebar';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { 
   User, 
-  Mail, 
   Phone, 
-  Shield, 
-  Lock,
-  Loader2,
   CheckCircle2,
   Bell,
-  Navigation
+  Navigation,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function AgentSettingsPage() {
   const { user } = useAuth();
@@ -61,94 +58,87 @@ export default function AgentSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans max-w-md mx-auto shadow-2xl relative border-x border-slate-200">
-      
-      <header className="bg-white p-4 border-b border-slate-100 sticky top-0 z-30">
-        <h1 className="font-bold text-slate-900 text-lg">Agent Settings</h1>
-      </header>
-
-      <main className="flex-1 overflow-y-auto p-4 space-y-6 pb-24 text-slate-900">
+    <DashboardLayout items={agentSidebarItems} title="Agent Settings">
+      <div className="max-w-2xl mx-auto py-8 px-4 text-slate-900">
          
-         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center">
-            <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-700 font-bold text-2xl border-4 border-white shadow-sm">
+         <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 text-center mb-8">
+            <div className="w-24 h-24 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-700 font-black text-3xl border-4 border-white shadow-md">
                {user?.name?.[0] || 'A'}
             </div>
-            <h2 className="font-bold text-slate-900">{user?.name}</h2>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Verified Delivery Partner</p>
+            <h2 className="font-black text-slate-900 text-xl">{user?.name}</h2>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Verified Delivery Partner</p>
          </div>
 
-         <form onSubmit={handleUpdateProfile} className="space-y-4">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
-               <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest mb-2">Profile Details</h3>
+         <form onSubmit={handleUpdateProfile} className="space-y-6">
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">Personal Details</h3>
                
-               <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 ml-1">Full Name</label>
-                  <div className="relative">
-                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                     <input 
-                       type="text" 
-                       value={formData.name}
-                       onChange={e => setFormData({...formData, name: e.target.value})}
-                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all outline-none text-sm font-medium" 
-                     />
+               <div className="space-y-4">
+                  <div className="space-y-1.5">
+                     <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Full Name</label>
+                     <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input 
+                          type="text" 
+                          value={formData.name}
+                          onChange={e => setFormData({...formData, name: e.target.value})}
+                          className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all outline-none text-sm font-bold" 
+                        />
+                     </div>
                   </div>
-               </div>
 
-               <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 ml-1">Phone Number</label>
-                  <div className="relative">
-                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                     <input 
-                       type="tel" 
-                       value={formData.phone}
-                       onChange={e => setFormData({...formData, phone: e.target.value})}
-                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all outline-none text-sm font-medium" 
-                     />
+                  <div className="space-y-1.5">
+                     <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Phone Number</label>
+                     <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input 
+                          type="tel" 
+                          value={formData.phone}
+                          onChange={e => setFormData({...formData, phone: e.target.value})}
+                          className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all outline-none text-sm font-bold" 
+                        />
+                     </div>
                   </div>
                </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
-               <h3 className="font-bold text-sm text-slate-500 uppercase tracking-widest mb-2">Preferences</h3>
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">Job Preferences</h3>
                
-               <label className="flex items-center justify-between p-1">
-                  <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600"><Bell className="h-4 w-4" /></div>
-                     <span className="text-sm font-bold text-slate-700">Push Notifications</span>
-                  </div>
-                  <input type="checkbox" defaultChecked className="w-5 h-5 rounded-md border-slate-300 text-primary-600 focus:ring-primary-500" />
-               </label>
+               <div className="space-y-2">
+                 <label className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform"><Bell className="h-5 w-5" /></div>
+                       <span className="text-sm font-black text-slate-700 uppercase">Push Notifications</span>
+                    </div>
+                    <input type="checkbox" defaultChecked className="w-6 h-6 rounded-lg border-slate-200 text-primary-600 focus:ring-primary-500 transition-all" />
+                 </label>
 
-               <label className="flex items-center justify-between p-1">
-                  <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600"><Navigation className="h-4 w-4" /></div>
-                     <span className="text-sm font-bold text-slate-700">Real-time Tracking</span>
-                  </div>
-                  <input type="checkbox" defaultChecked className="w-5 h-5 rounded-md border-slate-300 text-primary-600 focus:ring-primary-500" />
-               </label>
+                 <label className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform"><Navigation className="h-5 w-5" /></div>
+                       <span className="text-sm font-black text-slate-700 uppercase">Real-time Location</span>
+                    </div>
+                    <input type="checkbox" defaultChecked className="w-6 h-6 rounded-lg border-slate-200 text-primary-600 focus:ring-primary-500 transition-all" />
+                 </label>
+               </div>
             </div>
 
-            <div className="pt-4 px-2">
+            <div className="pt-4 flex flex-col items-center gap-4">
                {isSaved && (
-                 <p className="text-emerald-600 text-xs font-bold text-center mb-4 flex items-center justify-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> Profile updated successfully
+                 <p className="text-emerald-600 text-[10px] font-black uppercase flex items-center gap-1.5 animate-in zoom-in-95">
+                    <CheckCircle2 className="h-4 w-4" /> Profile updated successfully
                  </p>
                )}
-               <Button variant="primary" size="lg" className="w-full h-14 rounded-2xl shadow-lg shadow-primary-200 text-lg font-bold" type="submit" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'Save Changes'}
+               <Button variant="primary" size="lg" className="w-full h-14 rounded-2xl shadow-xl shadow-primary-200 text-sm font-black uppercase tracking-widest" type="submit" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save Profile Changes'}
+               </Button>
+               <Button variant="ghost" className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600" onClick={(e) => { e.preventDefault(); window.history.back(); }}>
+                 Return to Dashboard
                </Button>
             </div>
          </form>
-
-      </main>
-
-      {/* Simple Mobile Nav for Settings page (Back button) */}
-      <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-slate-100 p-4 z-40">
-         <Button variant="outline" className="w-full rounded-2xl h-12 font-bold" onClick={() => window.history.back()}>
-            Back to Dashboard
-         </Button>
-      </footer>
-
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

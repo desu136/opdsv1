@@ -18,18 +18,24 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, phone, status, image } = body;
+    // Extract fields that are allowed to be updated
+    const { name, email, phone, status, image, pharmacyId, isNewUser, lastLat, lastLng } = body;
 
     // Users can only update their own profile, unless Admin
     if (payload.id !== id && payload.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const dataToUpdate: any = {
-      name: name || undefined,
-      phone: phone || undefined,
-      image: image || undefined,
-    };
+    const dataToUpdate: any = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (email !== undefined) dataToUpdate.email = email;
+    if (phone !== undefined) dataToUpdate.phone = phone;
+    if (status !== undefined) dataToUpdate.status = status;
+    if (image !== undefined) dataToUpdate.image = image;
+    if (pharmacyId !== undefined) dataToUpdate.pharmacyId = pharmacyId;
+    if (isNewUser !== undefined) dataToUpdate.isNewUser = isNewUser;
+    if (lastLat !== undefined) dataToUpdate.lastLat = lastLat;
+    if (lastLng !== undefined) dataToUpdate.lastLng = lastLng;
 
     let previousStatus = null;
     let userRole = null;

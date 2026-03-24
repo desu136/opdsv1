@@ -25,19 +25,23 @@ export const Navbar = () => {
 
   const isActive = (path: string) => pathname === path;
 
-  const NavLinks = () => (
-    <>
-      <Link href="/products" className={`transition-colors hover:text-primary-600 ${isActive('/products') ? 'text-primary-600 font-semibold' : 'text-slate-600'}`}>
-        Medicines
-      </Link>
-      <Link href="/pharmacies" className={`transition-colors hover:text-primary-600 ${isActive('/pharmacies') ? 'text-primary-600 font-semibold' : 'text-slate-600'}`}>
-        Pharmacies
-      </Link>
-      <Link href="/tracking" className={`transition-colors hover:text-primary-600 ${isActive('/tracking') ? 'text-primary-600 font-semibold' : 'text-slate-600'}`}>
-        Track Order
-      </Link>
-    </>
-  );
+  const NavLinks = () => {
+    if (user && user.role !== 'CUSTOMER') return null;
+    
+    return (
+      <>
+        <Link href="/products" className={`transition-colors hover:text-primary-600 ${isActive('/products') ? 'text-primary-600 font-semibold' : 'text-slate-600'}`}>
+          Medicines
+        </Link>
+        <Link href="/pharmacies" className={`transition-colors hover:text-primary-600 ${isActive('/pharmacies') ? 'text-primary-600 font-semibold' : 'text-slate-600'}`}>
+          Pharmacies
+        </Link>
+        <Link href="/tracking" className={`transition-colors hover:text-primary-600 ${isActive('/tracking') ? 'text-primary-600 font-semibold' : 'text-slate-600'}`}>
+          Track Order
+        </Link>
+      </>
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-sm border-b border-slate-200">
@@ -82,7 +86,7 @@ export const Navbar = () => {
             user ? (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-semibold text-slate-800 leading-none">{user.name.split(' ')[0]}</span>
+                  <span className="text-sm font-semibold text-slate-800 leading-none">{user.name?.split(' ')[0] || 'User'}</span>
                   <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{user.role}</span>
                 </div>
                 
@@ -108,7 +112,7 @@ export const Navbar = () => {
                   <Button variant="ghost" size="sm">Login</Button>
                 </Link>
                 <Link href="/register">
-                  <Button variant="primary" size="sm">Register</Button>
+                  <Button variant="primary" size="sm">Partner with Us</Button>
                 </Link>
               </>
             )
@@ -144,7 +148,7 @@ export const Navbar = () => {
                     <div className="flex items-center gap-3 px-2 mb-2">
                        <div className="bg-primary-100 p-2 rounded-full"><User className="h-5 w-5 text-primary-700"/></div>
                        <div>
-                         <p className="text-sm font-bold text-slate-800">{user.name}</p>
+                         <p className="text-sm font-bold text-slate-800">{user.name || 'User'}</p>
                          <p className="text-xs text-slate-500">{user.role}</p>
                        </div>
                     </div>
@@ -155,6 +159,7 @@ export const Navbar = () => {
                         '/customer/dashboard'
                       } 
                       onClick={toggleMenu}
+                      className="w-full"
                     >
                       <Button variant="outline" className="w-full justify-center text-slate-700">Go to Dashboard</Button>
                     </Link>
@@ -166,7 +171,7 @@ export const Navbar = () => {
                       <Button variant="outline" className="w-full justify-center">Login</Button>
                     </Link>
                     <Link href="/register" onClick={toggleMenu}>
-                      <Button variant="primary" className="w-full justify-center">Register</Button>
+                      <Button variant="primary" className="w-full justify-center">Partner with Us</Button>
                     </Link>
                   </>
                 )

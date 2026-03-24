@@ -22,7 +22,29 @@ export async function GET(
       return NextResponse.json({ error: 'Pharmacy not found' }, { status: 404 });
     }
 
-    return NextResponse.json(pharmacy, { status: 200 });
+    const { searchParams } = new URL(request.url);
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+
+    let responseData: any = { ...pharmacy };
+
+    if (lat && lng && pharmacy.lat !== null && pharmacy.lng !== null) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+      
+      const R = 6371; // km
+      const dLat = (pharmacy.lat - userLat) * Math.PI / 180;
+      const dLon = (pharmacy.lng - userLng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(userLat * Math.PI / 180) * Math.cos(pharmacy.lat * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const d = R * c;
+      
+      responseData.distance = parseFloat(d.toFixed(1));
+    }
+
+    return NextResponse.json(responseData, { status: 200 });
   } catch (error) {
     console.error('Fetch pharmacy error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -44,7 +66,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { status, name, address, phone, email } = body;
+    const { status, name, address, phone, email, lat, lng } = body;
 
     // Check permissions
     if (payload.role === 'ADMIN') {
@@ -52,6 +74,8 @@ export async function PUT(
       const data: any = {};
       if (status) data.status = status;
       if (name) data.name = name;
+      if (lat !== undefined) data.lat = lat;
+      if (lng !== undefined) data.lng = lng;
 
       // Also update the associated user's status if status is provided
       const pharmacy = await prisma.pharmacy.findUnique({
@@ -104,6 +128,8 @@ export async function PUT(
           address: address || undefined,
           phone: phone || undefined,
           email: email || undefined,
+          lat: lat !== undefined ? lat : undefined,
+          lng: lng !== undefined ? lng : undefined,
         }
       });
       return NextResponse.json(updatedPharmacy, { status: 200 });

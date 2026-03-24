@@ -16,7 +16,8 @@ import {
   CheckCircle2, 
   ChevronRight, 
   Loader2, 
-  AlertCircle 
+  AlertCircle,
+  Camera
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -43,6 +44,7 @@ export default function CheckoutPage() {
   const deliveryFee = 50.00;
   const tax = totalPrice * 0.15;
   const grandTotal = totalPrice + deliveryFee + tax;
+  const hasCoordinates = !!(user?.lastLat && user?.lastLng);
 
   const requiresPrescription = items.some(item => item.requiresPrescription);
 
@@ -50,8 +52,8 @@ export default function CheckoutPage() {
 
   const handleNextStep = async () => {
     if (step === 1) {
-      if (!address.street) {
-        setError('Please enter your delivery street address');
+      if (!address.street && !hasCoordinates) {
+        setError('Please enter your delivery street address or enable location');
         return;
       }
       setError(null);
@@ -108,7 +110,9 @@ export default function CheckoutPage() {
         })),
         totalAmount: grandTotal,
         paymentMethod: paymentMethod,
-        shippingAddress: `${address.street}, ${address.city}`,
+        shippingAddress: address.street || (hasCoordinates ? 'Detected Phone Location' : ''),
+        lat: user?.lastLat,
+        lng: user?.lastLng,
         phone: address.phone,
         notes: address.notes,
         prescriptionUrl: (window as any)._prescriptionUrl || null,
@@ -224,11 +228,25 @@ export default function CheckoutPage() {
                     Delivery Address
                   </h2>
                   <div className="space-y-6">
+                    {hasCoordinates && (
+                      <div className="mb-6 bg-primary-50 border border-primary-100 p-4 rounded-2xl flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 shrink-0">
+                          <MapPin className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-primary-900 font-bold text-sm">Location Detected</p>
+                          <p className="text-primary-700 text-xs">We'll deliver to your current phone location.</p>
+                        </div>
+                      </div>
+                    )}
+
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Street Address / Landmark</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                        Street Address / Landmark {hasCoordinates && <span className="text-slate-400 font-normal normal-case">(Optional - location detected)</span>}
+                      </label>
                       <input 
                         type="text" 
-                        placeholder="e.g. Near Bole Medhanialem, House 123" 
+                        placeholder={hasCoordinates ? "Current location used by default..." : "e.g. Near Bole Medhanialem, House 123"} 
                         className="w-full px-5 py-4 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900"
                         value={address.street}
                         onChange={(e) => setAddress({...address, street: e.target.value})}
@@ -283,21 +301,23 @@ export default function CheckoutPage() {
               {step === 2 && (
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
                   <h2 className="text-2xl font-black text-slate-900 mb-4 flex items-center gap-3">
-                    <ShieldCheck className="h-6 w-6 text-primary-600" />
-                    Prescription Required
+                    <Camera className="h-6 w-6 text-primary-600" />
+                    Take Photo of Prescription
                   </h2>
-                  <p className="text-slate-500 mb-8 font-medium">Some items in your cart require a medical prescription. Please upload a clear photo or PDF.</p>
+                  <p className="text-slate-500 mb-8 font-medium">Some items in your cart require a medical prescription. Use your camera to take a clear photo of it.</p>
                   
-                  <div className="border-4 border-dashed border-slate-100 rounded-3xl p-12 text-center hover:border-primary-200 hover:bg-primary-50/30 transition-all cursor-pointer group mb-8">
+                  <div className="border-4 border-dashed border-slate-100 rounded-3xl p-12 text-center hover:border-primary-200 hover:bg-primary-50/30 transition-all cursor-pointer group mb-8 relative">
                     <div className="bg-slate-100 text-slate-400 group-hover:bg-primary-100 group-hover:text-primary-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
-                      <Upload className="h-8 w-8" />
+                      <Camera className="h-8 w-8" />
                     </div>
-                    <p className="text-slate-900 font-bold mb-1">Click to upload prescription</p>
-                    <p className="text-slate-500 text-sm">JPEG, PNG or PDF (Max 5MB)</p>
+                    <p className="text-slate-900 font-bold mb-1 underline decoration-primary-300 decoration-2">Tap to take photo</p>
+                    <p className="text-slate-500 text-sm">Clear camera photo of prescription</p>
                     <input 
                       type="file" 
                       className="hidden" 
                       id="prescription-upload" 
+                      accept="image/*"
+                      capture="environment"
                       multiple 
                       onChange={(e) => e.target.files && setPrescriptions(Array.from(e.target.files))}
                     />

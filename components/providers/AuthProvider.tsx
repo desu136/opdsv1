@@ -1,15 +1,18 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 type User = {
   id: string;
-  name: string;
-  email: string;
-  phone?: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
   status?: string;
-  image?: string;
+  image?: string | null;
+  isNewUser?: boolean;
+  lastLat?: number | null;
+  lastLng?: number | null;
   role: 'CUSTOMER' | 'PHARMACIST' | 'DELIVERY_AGENT' | 'ADMIN';
   pharmacy?: { id: string, name: string };
 };
@@ -17,7 +20,7 @@ type User = {
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
-  login: (userData: User) => void;
+  login: (userData: User, isNewUser?: boolean) => void;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
 };
@@ -28,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   const checkSession = async () => {
     try {
@@ -35,6 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        
+        // Auto-detect and save location for Customers
+        if (data.user?.role === 'CUSTOMER') {
+          import('@/lib/location').then(async ({ getUserLocation }) => {
+            const loc = await getUserLocation();
+            if (loc && data.user) {
+              await fetch(`/api/users/${data.user.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lastLat: loc.lat, lastLng: loc.lng })
+              });
+            }
+          });
+        }
       } else {
         setUser(null);
       }
@@ -49,23 +67,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession();
   }, []);
 
-  const login = (userData: User) => {
+  useEffect(() => {
+    // Strict Role-Based Access Control
+    if (!isLoading && user) {
+      const isCustomerRoute = pathname.startsWith('/customer');
+      const isAdminRoute = pathname.startsWith('/admin');
+      const isPharmacyRoute = pathname.startsWith('/pharmacy');
+      const isAgentRoute = pathname.startsWith('/agent');
+
+      // 1. Prevent non-customers from accessing customer dashboards
+      if (isCustomerRoute && user.role !== 'CUSTOMER') {
+        redirectToDashboard(user.role);
+      }
+      // 2. Prevent customers from accessing staff dashboards
+      else if ((isAdminRoute || isPharmacyRoute || isAgentRoute) && user.role === 'CUSTOMER') {
+        router.push('/');
+      }
+      // 3. Prevent staff from cross-accessing each other's dashboards
+      else if (isAdminRoute && user.role !== 'ADMIN') {
+        redirectToDashboard(user.role);
+      } else if (isPharmacyRoute && user.role !== 'PHARMACIST') {
+        redirectToDashboard(user.role);
+      } else if (isAgentRoute && user.role !== 'DELIVERY_AGENT') {
+        redirectToDashboard(user.role);
+      }
+      // 4. (Required) Prevent staff from using the customer Home page or storefront
+      const isHome = pathname === '/';
+      const isStorefront = 
+        pathname.startsWith('/products') || 
+        pathname.startsWith('/pharmacies') || 
+        pathname.startsWith('/tracking') || 
+        pathname.startsWith('/cart') || 
+        pathname.startsWith('/checkout');
+
+      if ((isHome || isStorefront) && user.role !== 'CUSTOMER') {
+        redirectToDashboard(user.role);
+      }
+    }
+  }, [user, isLoading, pathname, router]);
+
+  const redirectToDashboard = (role: string) => {
+    switch (role) {
+      case 'ADMIN': return router.push('/admin/dashboard');
+      case 'PHARMACIST': return router.push('/pharmacy/dashboard');
+      case 'DELIVERY_AGENT': return router.push('/agent/dashboard');
+      default: return router.push('/');
+    }
+  };
+
+  const login = (userData: User, isNewUser?: boolean) => {
     setUser(userData);
     
-    // Redirect based on role
-    switch (userData.role) {
-      case 'ADMIN':
-        router.push('/admin/dashboard');
-        break;
-      case 'PHARMACIST':
-        router.push('/pharmacy/dashboard');
-        break;
-      case 'DELIVERY_AGENT':
-        router.push('/agent/dashboard');
-        break;
-      default:
-        router.push('/customer/dashboard');
+    if (userData.role === 'CUSTOMER') {
+      if (isNewUser) {
+        router.push('/login/onboarding');
+      } else {
+        router.push('/'); // Customers go straight to the search-first home page
+      }
+      return;
     }
+
+    redirectToDashboard(userData.role);
   };
 
   const logout = async () => {

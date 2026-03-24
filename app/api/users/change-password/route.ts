@@ -26,6 +26,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    if (!user.password) {
+      return NextResponse.json({ error: 'Account does not have a password set.' }, { status: 400 });
+    }
+
     const isMatch = await verifyPassword(currentPassword, user.password);
     if (!isMatch) {
       return NextResponse.json({ error: 'Incorrect current password' }, { status: 400 });

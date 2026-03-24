@@ -44,7 +44,7 @@ export const DashboardLayout = ({ children, items, title }: DashboardLayoutProps
       <Sidebar 
         items={items} 
         userRole={user.role as any} 
-        userName={user.name}
+        userName={user.name || 'User'}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         className="hidden lg:flex"
@@ -69,12 +69,12 @@ export const DashboardLayout = ({ children, items, title }: DashboardLayoutProps
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 bg-white z-50 lg:hidden shadow-2xl"
+              className="fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-white z-50 lg:hidden shadow-2xl"
             >
               <Sidebar 
                 items={items} 
                 userRole={user.role as any} 
-                userName={user.name}
+                userName={user.name || 'User'}
                 isMobile={true}
                 onClose={() => setIsMobileOpen(false)}
               />

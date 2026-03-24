@@ -1,24 +1,43 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard, ProductProps } from '@/components/ui/ProductCard';
 import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/components/providers/AuthProvider';
 import { Search, Filter, SlidersHorizontal, ChevronDown, Loader2 } from 'lucide-react';
 
 const categories = ['All', 'Pain Relief', 'Antibiotics', 'Vitamins & Supplements', 'First Aid', 'Chronic Care', 'Baby Care'];
 
-export default function MedicinesListingPage() {
+function MedicinesListing() {
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const initialQuery = searchParams.get('query') || '';
+  
   const [activeCategory, setActiveCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [products, setProducts] = useState<ProductProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    // Update searchQuery if URL parameter changes
+    const query = searchParams.get('query');
+    if (query !== null) {
+      setSearchQuery(query);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchProducts = async (lat?: number, lng?: number) => {
       try {
-        const res = await fetch('/api/inventory');
+        let url = '/api/inventory';
+        if (lat && lng) {
+          url += `?lat=${lat}&lng=${lng}`;
+        }
+        
+        const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
           // Map API response to ProductProps
@@ -30,6 +49,7 @@ export default function MedicinesListingPage() {
             imageUrl: p.imageUrl,
             pharmacyId: p.pharmacy.id,
             pharmacyName: p.pharmacy.name,
+            distance: p.pharmacy.distance,
             requiresPrescription: p.requiresPrescription,
             inStock: p.stock > 0,
             category: p.category
@@ -42,13 +62,29 @@ export default function MedicinesListingPage() {
         setIsLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
+
+    const getCoordsAndFetch = () => {
+      if (user?.role === 'CUSTOMER' && (user as any).lastLat) {
+        fetchProducts((user as any).lastLat, (user as any).lastLng);
+      } else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => fetchProducts(pos.coords.latitude, pos.coords.longitude),
+          () => fetchProducts()
+        );
+      } else {
+        fetchProducts();
+      }
+    };
+
+    getCoordsAndFetch();
+  }, [user]);
 
   const filteredProducts = products.filter(p => {
     const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (p.genericName && p.genericName.toLowerCase().includes(searchQuery.toLowerCase()));
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = p.name.toLowerCase().includes(searchLower) || 
+                          (p.genericName && p.genericName.toLowerCase().includes(searchLower)) ||
+                          (p.pharmacyName && p.pharmacyName.toLowerCase().includes(searchLower));
     return matchesCategory && matchesSearch;
   });
 
@@ -59,7 +95,7 @@ export default function MedicinesListingPage() {
       <main className="flex-grow container mx-auto px-4 py-8">
         
         {/* Page Header & Search */}
-        <div className="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div className="mb-4 md:mb-8 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Find Medicines</h1>
@@ -153,7 +189,7 @@ export default function MedicinesListingPage() {
                 <p className="text-slate-500">Fetching latest inventory...</p>
               </div>
             ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-6">
                 {filteredProducts.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -177,5 +213,17 @@ export default function MedicinesListingPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function MedicinesListingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary-600" />
+      </div>
+    }>
+      <MedicinesListing />
+    </Suspense>
   );
 }

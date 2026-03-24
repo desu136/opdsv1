@@ -59,10 +59,10 @@ export default function PharmaciesPage() {
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl">
+      <main className="flex-grow container mx-auto px-4 py-4 md:py-8 max-w-6xl">
         
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 md:mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Partner Pharmacies</h1>
             <p className="text-slate-500 mt-1">Find and order from trusted local pharmacies near you.</p>
@@ -92,61 +92,67 @@ export default function PharmaciesPage() {
             <p className="text-slate-500 text-lg font-medium">Finding pharmacies near you...</p>
           </div>
         ) : filteredPharmacies.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-12">
+          <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 md:gap-6 mb-12">
             {filteredPharmacies.map((pharmacy: any) => (
-              <div key={pharmacy.id} className="bg-white rounded-3xl p-6 shadow-sm shadow-slate-200/50 border border-slate-100 hover:shadow-md hover:border-primary-100 transition-all group relative overflow-hidden flex flex-col sm:flex-row gap-6">
+              <div key={pharmacy.id} className="bg-white rounded-2xl md:rounded-3xl p-2.5 md:p-6 shadow-sm shadow-slate-200/50 border border-slate-100 hover:shadow-md hover:border-primary-100 transition-all group relative overflow-hidden flex flex-col gap-2 md:gap-6">
                 
                 {/* Optional background accent for verified */}
                 {pharmacy.verified && (
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
+                  <div className="absolute top-0 right-0 w-12 h-12 md:w-24 md:h-24 bg-primary-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
                 )}
 
-                {/* Icon / Image Placeholder */}
-                <div className="w-20 h-20 bg-slate-50 rounded-2xl flex flex-col items-center justify-center shrink-0 border border-slate-100 relative z-10 group-hover:bg-primary-50 transition-colors">
-                   <Store className="h-8 w-8 text-slate-400 group-hover:text-primary-600 transition-colors" />
-                </div>
+                {/* Content Header (Icon + Name/Rating) */}
+                <div className="flex items-center sm:items-start gap-3 md:gap-6">
+                  {/* Icon / Image Placeholder */}
+                  <div className="w-12 h-12 md:w-20 md:h-20 bg-slate-50 rounded-xl md:rounded-2xl flex flex-col items-center justify-center shrink-0 border border-slate-100 relative z-10 group-hover:bg-primary-50 transition-colors">
+                     <Store className="h-5 w-5 md:h-8 md:w-8 text-slate-400 group-hover:text-primary-600 transition-colors" />
+                  </div>
 
-                {/* Pharmacy Details */}
-                <div className="flex-grow relative z-10">
-                  <div className="flex justify-between items-start mb-1">
-                    <h2 className="text-lg font-bold text-slate-900 group-hover:text-primary-700 transition-colors flex items-center gap-2">
-                      {pharmacy.name}
-                      {pharmacy.verified && <ShieldCheck className="h-4 w-4 text-primary-500" />}
-                    </h2>
-                    <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg text-amber-700 text-xs font-bold">
-                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                  {/* Pharmacy Details */}
+                  <div className="flex-grow relative z-10 min-w-0">
+                    <div className="flex justify-between items-start mb-0.5">
+                      <h2 className="text-sm md:text-lg font-bold text-slate-900 group-hover:text-primary-700 transition-colors flex items-center gap-1 md:gap-2 truncate">
+                        {pharmacy.name}
+                        {pharmacy.verified && <ShieldCheck className="h-3 w-3 md:h-4 md:w-4 text-primary-500" />}
+                      </h2>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md text-amber-700 text-[9px] md:text-xs font-bold w-fit">
+                      <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
                       {pharmacy.rating}
                     </div>
                   </div>
-                  
-                  <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-3">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {pharmacy.location} • {pharmacy.distance}
+                </div>
+
+                {/* Sub-details */}
+                <div className="relative z-10">
+                  <p className="text-[10px] md:text-sm text-slate-500 flex items-center gap-1 mb-1.5 md:mb-3">
+                    <MapPin className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                    <span className="truncate">{pharmacy.location} • {pharmacy.distance}</span>
                   </p>
 
-                  <div className="flex items-center gap-4 mb-4 text-sm">
-                    <div className="flex items-center gap-1.5 font-medium">
-                      <Clock className={`h-4 w-4 ${pharmacy.openStatus === 'Open Now' ? 'text-green-500' : 'text-slate-400'}`} />
+                  <div className="flex items-center gap-4 mb-2 md:mb-4 text-[10px] md:text-sm">
+                    <div className="flex items-center gap-1 md:gap-1.5 font-medium">
+                      <Clock className={`h-3 w-3 md:h-4 md:w-4 ${pharmacy.openStatus === 'Open Now' ? 'text-green-500' : 'text-slate-400'}`} />
                       <span className={pharmacy.openStatus === 'Open Now' ? 'text-green-700' : 'text-slate-500'}>
                         {pharmacy.openStatus}
                       </span>
-                      <span className="text-slate-400">({pharmacy.closingTime})</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {pharmacy.tags.map((tag: string, idx: number) => (
-                      <span key={idx} className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
+                  <div className="flex flex-wrap gap-1 md:gap-2 mb-2 md:mb-4">
+                    {pharmacy.tags.slice(0, 2).map((tag: string, idx: number) => (
+                      <span key={idx} className="text-[9px] md:text-xs font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md">
                         {tag}
                       </span>
                     ))}
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                    <span className="text-xs text-slate-500">{pharmacy.reviews} Reviews</span>
+                  <div className="flex items-center justify-between pt-2 md:pt-4 border-t border-slate-50">
+                    <span className="text-[9px] md:text-xs text-slate-500">{pharmacy.reviews} <span className="hidden sm:inline">Reviews</span></span>
                     <Link href={`/products?pharmacyId=${pharmacy.id}`}>
-                      <Button variant="outline" size="sm" className="rounded-xl group-hover:bg-primary-50 group-hover:text-primary-700 group-hover:border-primary-200">
-                        View Medicines <ChevronRight className="h-4 w-4 ml-1" />
+                      <Button variant="outline" size="sm" className="h-7 md:h-9 rounded-lg md:rounded-xl text-[10px] md:text-sm group-hover:bg-primary-50 group-hover:text-primary-700 group-hover:border-primary-200 px-2 md:px-4">
+                        View <span className="hidden sm:inline">Medicines</span> <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-0.5 md:ml-1" />
                       </Button>
                     </Link>
                   </div>

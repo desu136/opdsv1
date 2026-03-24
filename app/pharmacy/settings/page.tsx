@@ -117,7 +117,9 @@ export default function PharmacySettingsPage() {
           name: pharmacyData.name,
           email: pharmacyData.email,
           phone: pharmacyData.phone,
-          address: pharmacyData.address
+          address: pharmacyData.address,
+          lat: pharmacyData.lat,
+          lng: pharmacyData.lng
         })
       });
       if (res.ok) {
@@ -337,6 +339,59 @@ export default function PharmacySettingsPage() {
                             placeholder="Detailed address..."
                           />
                         </div>
+                      </div>
+
+                      <div className="space-y-4 md:col-span-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-bold text-slate-700">Exact Store Coordinates</label>
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition(
+                                  (pos) => {
+                                    setPharmacyData({
+                                      ...pharmacyData,
+                                      lat: parseFloat(pos.coords.latitude.toFixed(6)),
+                                      lng: parseFloat(pos.coords.longitude.toFixed(6))
+                                    });
+                                    showMessage('success', 'Location detected!');
+                                  },
+                                  (err) => showMessage('error', 'Location access denied')
+                                );
+                              }
+                            }}
+                            className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 bg-primary-50 px-3 py-1.5 rounded-lg transition-colors border border-primary-100"
+                          >
+                            <MapPin className="h-3 w-3" /> Detect My Location
+                          </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400">Latitude</label>
+                            <input 
+                              type="number" 
+                              step="any"
+                              value={pharmacyData?.lat || ''}
+                              onChange={e => setPharmacyData({...pharmacyData, lat: parseFloat(e.target.value)})}
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                              placeholder="e.g. 9.0249"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400">Longitude</label>
+                            <input 
+                              type="number" 
+                              step="any"
+                              value={pharmacyData?.lng || ''}
+                              onChange={e => setPharmacyData({...pharmacyData, lng: parseFloat(e.target.value)})}
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                              placeholder="e.g. 38.7468"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-400 italic">Coordinates are used to calculate accurate distance for customers.</p>
                       </div>
                     </div>
 

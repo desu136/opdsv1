@@ -198,7 +198,7 @@ export default function AdminSettingsPage() {
                     <img src={profileData.image} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-primary-600 text-3xl font-bold">
-                      {user.name.charAt(0)}
+                      {user?.name?.charAt(0) || 'A'}
                     </div>
                   )}
                   {isUploading && (

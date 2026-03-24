@@ -70,7 +70,7 @@ export default function CustomerDashboard() {
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Welcome back, {user.name.split(' ')[0]}! 👋</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Welcome back, {user.name?.split(' ')[0] || 'Customer'}! 👋</h1>
           <p className="text-slate-500">Here's what's happening with your health orders.</p>
         </div>
         

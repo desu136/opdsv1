@@ -10,16 +10,19 @@ datasource db {
 
 model User {
   id            String        @id @default(uuid())
-  name          String
-  email         String        @unique
+  name          String?
+  email         String?       @unique
   phone         String?       @unique
-  password      String
+  password      String?
   emailVerified DateTime?
   role          Role          @default(CUSTOMER)
   status        AccountStatus @default(PENDING_REVIEW)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   image         String?
+  isNewUser     Boolean       @default(true)
+  lastLat       Float?
+  lastLng       Float?
   addresses     Address[]
   deliveries    Delivery[]
   orders        Order[]
@@ -50,6 +53,8 @@ model Pharmacy {
   licenseDocumentUrl String?
   status             AccountStatus @default(PENDING_REVIEW)
   createdAt          DateTime      @default(now())
+  lat                Float?
+  lng                Float?
   orders             Order[]
   owner              User          @relation(fields: [ownerId], references: [id])
   inventory          Product[]
@@ -79,6 +84,8 @@ model Order {
   status          OrderStatus   @default(PENDING)
   totalAmount     Float
   shippingAddress String?
+  lat             Float?
+  lng             Float?
   phone           String?
   notes           String?
   paymentMethod   String        @default("COD")

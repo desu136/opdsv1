@@ -1,28 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Sidebar, pharmacySidebarItems } from '@/components/layout/Sidebar';
+import React, { useState, useEffect } from 'react';
+import { pharmacySidebarItems } from '@/components/layout/Sidebar';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { 
   Search,
   CheckCircle2,
   XCircle,
   FileText,
-  Clock,
   Eye,
   MessageSquare,
   Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-
-// Mock Data
-const prescriptionQueue = [
-  { id: 'RX-10042', orderId: 'ORD-8920', patient: 'Yosef Alemu', doctor: 'Dr. Tadesse', date: '2023-11-20', status: 'Pending Review', urgency: 'High' },
-  { id: 'RX-10041', orderId: 'ORD-8919', patient: 'Lielt Girma', doctor: 'Dr. Kebede', date: '2023-11-20', status: 'Pending Review', urgency: 'Normal' },
-  { id: 'RX-10040', orderId: 'ORD-8915', patient: 'Abebe Bekele', doctor: 'Dr. Almaz', date: '2023-11-19', status: 'Approved', urgency: 'Normal' },
-  { id: 'RX-10039', orderId: 'ORD-8910', patient: 'Mekdes Haile', doctor: 'Dr. Samuel', date: '2023-11-19', status: 'Rejected', urgency: 'Normal' },
-];
 
 export default function PharmacyPrescriptionsPage() {
   const { user } = useAuth();
@@ -39,7 +30,6 @@ export default function PharmacyPrescriptionsPage() {
       const res = await fetch('/api/orders');
       if (res.ok) {
         const data = await res.json();
-        // Filter for orders with prescriptions
         const withRx = data.filter((o: any) => o.prescription);
         setOrders(withRx);
       }
@@ -50,7 +40,7 @@ export default function PharmacyPrescriptionsPage() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) fetchOrders();
   }, [user]);
 
@@ -86,180 +76,113 @@ export default function PharmacyPrescriptionsPage() {
   const getStats = (status: string) => orders.filter(o => o.prescription.status === status).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          items={pharmacySidebarItems} 
-          userRole="Pharmacy" 
-          userName={user?.pharmacy?.name || user?.name || 'Pharmacist'} 
-        />
-
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-               <h1 className="text-2xl font-bold text-slate-900">Prescription Verification</h1>
-               <p className="text-slate-500">Review uploaded patient prescriptions to approve orders.</p>
-            </div>
-            <div className="flex items-center gap-3">
-               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                 <input 
-                   type="text" 
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                   placeholder="Search by RX ID or Patient..." 
-                   className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-64" 
-                 />
-               </div>
-            </div>
+    <DashboardLayout items={pharmacySidebarItems} title="Prescription Verification">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 text-slate-900">
+          <div>
+             <h1 className="text-2xl font-bold">Verification Queue</h1>
+             <p className="text-slate-500">Review patient prescriptions to approve medicine orders.</p>
           </div>
-
-          {/* Filter Tabs */}
-          <div className="flex border-b border-slate-200 mb-6 w-full">
-            {[
-              { id: 'PENDING_REVIEW', label: `Pending Review (${getStats('PENDING_REVIEW')})` },
-              { id: 'APPROVED', label: 'Approved' },
-              { id: 'REJECTED', label: 'Rejected / Needs Info' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                   setActiveTab(tab.id);
-                   setSelectedOrder(null);
-                }}
-                className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex-1 sm:flex-none text-center ${
-                  activeTab === tab.id 
-                    ? 'border-primary-600 text-primary-700' 
-                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="relative w-full sm:w-64">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+             <input 
+               type="text" 
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               placeholder="Search..." 
+               className="pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none w-full" 
+             />
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* List */}
-            <div className="lg:col-span-1 space-y-4 h-[600px] overflow-y-auto pr-2">
-               {isLoading ? (
-                  <div className="flex flex-col items-center justify-center p-8 text-slate-400">
-                    <Loader2 className="h-8 w-8 animate-spin mb-2" />
-                    <p>Loading queue...</p>
+        <div className="flex border-b border-slate-200 mb-6 overflow-x-auto no-scrollbar text-slate-900">
+          {[
+            { id: 'PENDING_REVIEW', label: `Pending (${getStats('PENDING_REVIEW')})` },
+            { id: 'APPROVED', label: 'Approved' },
+            { id: 'REJECTED', label: 'Rejected' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSelectedOrder(null); }}
+              className={`px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap ${
+                activeTab === tab.id ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-slate-900">
+          <div className="lg:col-span-4 space-y-3 h-[calc(100vh-350px)] overflow-y-auto pr-2 no-scrollbar">
+             {isLoading ? (
+                <div className="flex flex-col items-center justify-center p-12 text-slate-400 font-bold italic"><Loader2 className="h-8 w-8 animate-spin mb-2" /> Loading...</div>
+             ) : filteredRx.map(o => (
+               <div 
+                 key={o.id} 
+                 onClick={() => setSelectedOrder(o)}
+                 className={`p-4 rounded-2xl border-2 transition-all cursor-pointer bg-white ${selectedOrder?.id === o.id ? 'border-primary-500 shadow-md' : 'border-slate-100'}`}
+               >
+                  <div className="flex justify-between items-start mb-1">
+                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">#{o.id.slice(-6).toUpperCase()}</span>
+                     <span className="text-[10px] font-bold text-slate-400">{new Date(o.createdAt).toLocaleDateString()}</span>
                   </div>
-               ) : filteredRx.map(o => (
-                 <div 
-                   key={o.id} 
-                   onClick={() => setSelectedOrder(o)}
-                   className={`bg-white p-4 rounded-xl border transition-colors cursor-pointer shadow-sm ${selectedOrder?.id === o.id ? 'border-primary-500 ring-1 ring-primary-500' : 'border-slate-200 hover:border-primary-300'}`}
-                 >
-                    <div className="flex justify-between items-start mb-2">
-                       <span className="font-bold text-slate-900">{o.id.slice(0, 8)}</span>
-                       <span className="text-xs text-slate-500">{new Date(o.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-sm font-medium text-slate-700">{o.customer?.name}</p>
-                    <p className="text-xs text-slate-500 mb-3">Order Total: {o.totalAmount} ETB</p>
-                    <div className="flex justify-between items-center">
-                       {o.prescription.status === 'PENDING_REVIEW' && <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded">Pending</span>}
-                       {o.prescription.status === 'APPROVED' && <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Approved</span>}
-                       {o.prescription.status === 'REJECTED' && <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded">Rejected</span>}
-                    </div>
-                 </div>
-               ))}
-               
-               {!isLoading && filteredRx.length === 0 && (
-                 <div className="bg-slate-50 border border-slate-200 border-dashed rounded-xl p-8 text-center text-slate-500 flex flex-col items-center">
-                   <CheckCircle2 className="h-8 w-8 text-slate-300 mb-2" />
-                   <p>No prescriptions in this queue.</p>
-                 </div>
-               )}
-            </div>
-
-            {/* Detail View */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 h-[600px] flex flex-col overflow-hidden">
-               {selectedOrder ? (
-                 <>
-                   <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-primary-600" />
-                          Verification: {selectedOrder.id.slice(0, 8)}
-                        </h2>
-                        <p className="text-sm text-slate-500">Patient: {selectedOrder.customer?.name} • Contact: {selectedOrder.customer?.phone}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="bg-white"><MessageSquare className="h-4 w-4 mr-2" />Contact Patient</Button>
-                      </div>
-                   </div>
-                   
-                   <div className="flex-1 p-6 relative bg-slate-900 flex items-center justify-center overflow-hidden">
-                      {selectedOrder.prescription.documentUrl ? (
-                         <img 
-                           src={selectedOrder.prescription.documentUrl} 
-                           alt="Prescription" 
-                           className="max-w-full max-h-full object-contain shadow-2xl" 
-                         />
-                      ) : (
-                         <div className="text-white text-center">
-                           <FileText className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                           <p>No document image available</p>
-                         </div>
-                      )}
-                      
-                      <div className="absolute top-4 right-4 group">
-                         <Button variant="primary" className="rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => window.open(selectedOrder.prescription.documentUrl)}>
-                           <Eye className="h-4 w-4" />
-                         </Button>
-                      </div>
-                   </div>
-
-                   <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between">
-                      <div className="text-sm max-w-[60%] truncate">
-                        <span className="font-semibold text-slate-700">Rx Items:</span>
-                        <span className="ml-2 text-slate-600">
-                          {selectedOrder.items.map((i: any) => i.product.name).join(', ')}
-                        </span>
-                      </div>
-                      <div className="flex gap-3">
-                        {selectedOrder.prescription.status === 'PENDING_REVIEW' && (
-                          <>
-                            <Button 
-                              variant="outline" 
-                              className="border-red-200 text-red-600 hover:bg-red-50 px-6 rounded-xl"
-                              onClick={() => handleVerify('REJECTED')}
-                              disabled={isProcessing}
-                            >
-                              <XCircle className="h-4 w-4 mr-2" /> Reject
-                            </Button>
-                            <Button 
-                              variant="primary" 
-                              className="px-8 rounded-xl"
-                              onClick={() => handleVerify('APPROVED')}
-                              disabled={isProcessing}
-                            >
-                              <CheckCircle2 className="h-4 w-4 mr-2" /> Approve
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                   </div>
-                 </>
-               ) : (
-                 <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-slate-50">
-                    <FileText className="h-16 w-16 text-slate-200 mb-4" />
-                    <p className="text-lg font-medium text-slate-500">Select a prescription</p>
-                    <p className="text-sm mt-1">Click on a prescription from the queue to view details.</p>
-                 </div>
-               )}
-            </div>
-
+                  <p className="font-black text-slate-900 text-sm mb-1">{o.customer?.name}</p>
+                  <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest">ETB {o.totalAmount.toLocaleString()}</p>
+               </div>
+             ))}
+             {!isLoading && filteredRx.length === 0 && (
+               <div className="p-12 text-center text-slate-400 italic text-xs">No prescriptions found.</div>
+             )}
           </div>
 
-        </main>
-      </div>
-    </div>
+          <div className="lg:col-span-8 bg-slate-50 rounded-3xl border border-slate-200 h-[calc(100vh-350px)] flex flex-col overflow-hidden relative group">
+             {selectedOrder ? (
+               <>
+                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white">
+                    <div>
+                      <h2 className="text-sm font-black text-slate-900 uppercase">Prescription View</h2>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{selectedOrder.customer?.phone}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-8 px-3 rounded-lg text-[10px] font-black uppercase"><MessageSquare className="h-3 w-3 mr-2" /> Contact</Button>
+                 </div>
+                 
+                 <div className="flex-1 p-8 bg-slate-900 flex items-center justify-center overflow-hidden">
+                    {selectedOrder.prescription.documentUrl ? (
+                       <img src={selectedOrder.prescription.documentUrl} alt="RX" className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" />
+                    ) : (
+                       <div className="text-white/20 text-center"><FileText className="h-16 w-16 mx-auto mb-2" /> No Document Image</div>
+                    )}
+                 </div>
+
+                 <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2">
+                       <FileText className="h-3 w-3" /> {selectedOrder.items.length} Medicines requested
+                    </div>
+                    <div className="flex gap-2">
+                      {selectedOrder.prescription.status === 'PENDING_REVIEW' && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            className="h-9 px-4 rounded-xl text-[10px] font-black uppercase border-rose-100 text-rose-600 bg-rose-50"
+                            onClick={() => handleVerify('REJECTED')}
+                            disabled={isProcessing}
+                          >Reject</Button>
+                          <Button 
+                            variant="primary" 
+                            className="h-9 px-6 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-primary-200"
+                            onClick={() => handleVerify('APPROVED')}
+                            disabled={isProcessing}
+                          >Approve</Button>
+                        </>
+                      )}
+                    </div>
+                 </div>
+               </>
+             ) : (
+               <div className="flex-1 flex flex-col items-center justify-center text-slate-300 font-black uppercase text-xs tracking-widest"><FileText className="h-16 w-16 mb-4 opacity-10" /> Select an item</div>
+             )}
+          </div>
+        </div>
+    </DashboardLayout>
   );
 }

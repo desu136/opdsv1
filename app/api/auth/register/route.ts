@@ -7,7 +7,7 @@ import crypto from 'crypto';
 async function generateAndSendVerification(email: string) {
   try {
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // Let's first run the DB migration. No replacement needed yet.s
 
     // Remove any old unused tokens for this email first
     await prisma.verificationToken.deleteMany({
@@ -46,21 +46,7 @@ export async function POST(request: Request) {
     const hashedPassword = await hashPassword(password);
 
     if (role === 'CUSTOMER') {
-      const { firstName, lastName } = body;
-      const user = await prisma.user.create({
-        data: {
-          name: `${firstName} ${lastName}`.trim(),
-          email,
-          phone,
-          password: hashedPassword,
-          role: 'CUSTOMER',
-          status: 'ACTIVE',
-        }
-      });
-      await generateAndSendVerification(email);
-      // Don't return password
-      const { password: _, ...userWithoutPassword } = user;
-      return NextResponse.json(userWithoutPassword, { status: 201 });
+      return NextResponse.json({ error: 'Customers must use OTP login. Registration is not supported.' }, { status: 400 });
     } 
     
     else if (role === 'PHARMACIST') {

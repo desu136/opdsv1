@@ -61,7 +61,7 @@ export const Sidebar = ({
     <aside 
       className={cn(
         "bg-white border-r border-slate-200 h-screen flex flex-col transition-all duration-300 relative",
-        isMobile ? "w-full" : isCollapsed ? "w-20" : "w-72",
+        isMobile ? "w-[280px] max-w-[85vw]" : isCollapsed ? "w-20" : "w-72",
         className
       )}
     >
@@ -101,9 +101,9 @@ export const Sidebar = ({
                  userName.charAt(0)
                )}
              </div>
-             <div className="min-w-0">
-               <p className="font-bold text-slate-900 truncate text-sm">{userName}</p>
-               <p className="text-xs text-slate-500 truncate">active</p>
+             <div className="min-w-0 flex-1">
+               <p className="font-bold text-slate-900 truncate text-sm leading-tight">{userName}</p>
+               <p className="text-[10px] text-slate-500 truncate mt-0.5">active session</p>
              </div>
           </div>
         </div>

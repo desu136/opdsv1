@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function RegisterPage() {
-  const [role, setRole] = useState<'customer'|'pharmacy'|'agent'>('customer');
+  const [role, setRole] = useState<'pharmacy'|'agent'>('pharmacy');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -71,7 +71,7 @@ export default function RegisterPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          role: role === 'pharmacy' ? 'PHARMACIST' : role === 'agent' ? 'DELIVERY_AGENT' : 'CUSTOMER',
+          role: role === 'pharmacy' ? 'PHARMACIST' : 'DELIVERY_AGENT',
           ...formData,
           licenseDocumentUrl: licenseUrl
         })
@@ -113,25 +113,33 @@ export default function RegisterPage() {
           <p className="text-slate-500 mb-6">Join our network to get access to fast, reliable health solutions.</p>
 
           {/* Role Toggle */}
-          <div className="flex p-1 bg-slate-100 rounded-xl mb-8">
-            <button
-              onClick={() => setRole('customer')}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${role === 'customer' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Customer
-            </button>
-            <button
-              onClick={() => setRole('agent')}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${role === 'agent' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Agent
-            </button>
+          <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
             <button
               onClick={() => setRole('pharmacy')}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${role === 'pharmacy' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               Pharmacy
             </button>
+            <button
+              onClick={() => setRole('agent')}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${role === 'agent' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Delivery Agent
+            </button>
+          </div>
+
+          {/* Customer Redirection Banner */}
+          <div className="mb-8 p-4 bg-primary-50 rounded-2xl border border-primary-100 flex items-start gap-3">
+             <div className="bg-primary-100 p-2 rounded-xl text-primary-600">
+               <User className="h-5 w-5" />
+             </div>
+             <div>
+               <p className="text-sm font-bold text-primary-900">Buying Medicines?</p>
+               <p className="text-xs text-primary-700 mb-2">Customers don't need to register! Just sign in with your phone number.</p>
+               <Link href="/login" className="text-xs font-black text-primary-600 hover:underline flex items-center gap-1 uppercase tracking-wider">
+                 Customer Login <ArrowRight className="h-3 w-3" />
+               </Link>
+             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
