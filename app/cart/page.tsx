@@ -50,81 +50,73 @@ export default function CartPage() {
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
       
-      <main className="flex-grow container mx-auto px-4 py-8 md:py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <main className="flex-grow container mx-auto px-4 py-4 md:py-12 pb-32 md:pb-12">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
           
           {/* Cart Items List */}
-          <div className="flex-1 space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-slate-900">Your Shopping Cart ({totalItems})</h1>
+          <div className="flex-1 space-y-4 md:space-y-6">
+            <div className="flex items-center justify-between px-1">
+              <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">Your Cart ({totalItems})</h1>
               <button 
                 onClick={clearCart} 
-                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+                className="text-xs md:text-sm font-bold text-red-500 hover:text-red-600 transition-colors uppercase tracking-wider"
               >
                 Clear All
               </button>
             </div>
 
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="divide-y divide-slate-100">
                 {items.map((item) => (
-                  <div key={item.id} className="p-6 flex flex-col sm:flex-row items-center gap-6">
+                  <div key={item.id} className="p-3 md:p-6 flex items-start gap-3 md:gap-6">
                     {/* Item Image Placeholder */}
-                    <div className="h-24 w-24 bg-slate-50 rounded-2xl flex items-center justify-center shrink-0 border border-slate-100">
-                      <ShoppingBag className="h-10 w-10 text-slate-200" />
+                    <div className="h-20 w-20 md:h-24 md:w-24 bg-slate-50 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 border border-slate-100">
+                      <ShoppingBag className="h-8 w-8 md:h-10 md:w-10 text-slate-200" />
                     </div>
 
                     {/* Item Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Store className="h-3 w-3 text-slate-400" />
-                        <span className="text-xs font-medium text-slate-500 uppercase tracking-tight">{item.pharmacyName}</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 truncate mb-1">
-                        {item.name}
-                      </h3>
-                      <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex-1 min-w-0 flex flex-col h-full py-0.5">
+                      <div className="mb-0.5">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Store className="h-3 w-3 text-slate-400" />
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{item.pharmacyName}</span>
+                        </div>
+                        <h3 className="text-sm md:text-lg font-bold text-slate-900 truncate leading-tight mb-1">
+                          {item.name}
+                        </h3>
                         {item.requiresPrescription && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded uppercase tracking-wider border border-amber-100">
-                            <ShieldCheck className="h-3 w-3" /> Rx Required
+                          <span className="inline-flex items-center gap-1 text-[9px] font-black bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-100 uppercase tracking-tighter">
+                            <ShieldCheck className="h-2.5 w-2.5" /> Rx Required
                           </span>
                         )}
                       </div>
                       
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                      <div className="mt-auto pt-2 flex items-center justify-between w-full">
+                        <div className="flex items-center bg-slate-50 p-0.5 rounded-lg border border-slate-100">
                           <button 
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors text-slate-600"
+                            className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-white transition-colors text-slate-500 hover:text-primary-600"
                           >
-                            <Minus className="h-4 w-4" />
+                            <Minus className="h-3.5 w-3.5" />
                           </button>
-                          <span className="w-10 text-center font-bold text-slate-900">{item.quantity}</span>
+                          <span className="w-8 text-center text-sm font-black text-slate-900">{item.quantity}</span>
                           <button 
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors text-slate-600"
+                            className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-white transition-colors text-slate-500 hover:text-primary-600"
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-3.5 w-3.5" />
                           </button>
                         </div>
-                        <button 
-                          onClick={() => removeItem(item.id)}
-                          className="text-slate-400 hover:text-red-600 transition-colors p-2"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
 
-                    {/* Price */}
-                    <div className="text-right sm:pl-6 shrink-0">
-                      <p className="text-sm text-slate-500 mb-1">Total</p>
-                      <p className="text-xl font-bold text-slate-900">
-                        {(item.price * item.quantity).toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {item.price.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })} each
-                      </p>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm md:text-xl font-black text-slate-900 leading-none">
+                            {(item.price * item.quantity).toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            {item.price.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })} each
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -200,6 +192,31 @@ export default function CartPage() {
       </main>
       
       <Footer />
+      
+      {/* Mobile Sticky Checkout Bar */}
+      {items.length > 0 && (
+        <div className="md:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-slate-100 p-4 shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.1)] z-40 pb-safe">
+          <div className="flex items-center justify-between gap-4">
+             <div>
+               <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total</p>
+               <p className="text-xl font-black text-primary-600 leading-none">{grandTotal.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</p>
+             </div>
+             {user ? (
+                <Link href="/checkout" className="flex-1">
+                  <Button size="lg" className="w-full rounded-2xl font-bold shadow-lg shadow-primary-200">
+                    Checkout <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+             ) : (
+                <Link href="/login?redirect=/cart" className="flex-1">
+                  <Button size="lg" className="w-full rounded-2xl font-bold shadow-lg shadow-primary-200">
+                    Login to Pay
+                  </Button>
+                </Link>
+             )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

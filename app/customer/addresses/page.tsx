@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { customerSidebarItems } from '@/components/layout/Sidebar';
+import { Navbar } from '@/components/layout/Navbar';
 import { 
   MapPin, 
   Plus, 
@@ -94,8 +93,9 @@ export default function CustomerAddressesPage() {
   if (!user) return null;
 
   return (
-    <DashboardLayout items={customerSidebarItems} title="Address Book">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-safe">
+      <Navbar />
+      <main className="flex-grow pt-6 pb-24 container mx-auto px-4 max-w-5xl">
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -239,7 +239,7 @@ export default function CustomerAddressesPage() {
             </div>
           )}
         </div>
-      </div>
-    </DashboardLayout>
+      </main>
+    </div>
   );
 }

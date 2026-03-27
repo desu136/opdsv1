@@ -66,7 +66,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { status, name, address, phone, email, lat, lng } = body;
+    const { status, name, address, phone, email, lat, lng, logoUrl, coverImageUrl, description, workingHours } = body;
 
     // Check permissions
     if (payload.role === 'ADMIN') {
@@ -130,14 +130,18 @@ export async function PUT(
           email: email || undefined,
           lat: lat !== undefined ? lat : undefined,
           lng: lng !== undefined ? lng : undefined,
+          logoUrl: logoUrl !== undefined ? logoUrl : undefined,
+          coverImageUrl: coverImageUrl !== undefined ? coverImageUrl : undefined,
+          description: description !== undefined ? description : undefined,
+          workingHours: workingHours !== undefined ? workingHours : undefined,
         }
       });
       return NextResponse.json(updatedPharmacy, { status: 200 });
     }
 
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  } catch (error) {
-    console.error('Update pharmacy status error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Update pharmacy error:', error);
+    return NextResponse.json({ error: 'Internal Server Error', message: error.message }, { status: 500 });
   }
 }

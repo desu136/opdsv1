@@ -83,7 +83,7 @@ async function main() {
       data: {
         customerId: customer.id,
         pharmacyId: pharmacy.id,
-        status: 'PLACED',
+        status: 'PENDING',
         totalAmount: 100,
         items: {
           create: {

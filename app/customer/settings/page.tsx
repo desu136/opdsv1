@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { customerSidebarItems } from '@/components/layout/Sidebar';
+import { Navbar } from '@/components/layout/Navbar';
 import { 
   User, 
   Mail, 
   Phone, 
   MapPin, 
   Shield, 
-  Lock,
   Loader2,
   CheckCircle2,
   Trash2,
@@ -34,13 +32,7 @@ export default function CustomerSettingsPage() {
   });
   const [isUploading, setIsUploading] = useState(false);
   
-  // Password State
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  
+
   // Addresses State
   const [addresses, setAddresses] = useState<any[]>([]);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -107,36 +99,6 @@ export default function CustomerSettingsPage() {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return showMessage('error', 'Passwords do not match');
-    }
-    
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/users/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
-      });
-      
-      if (res.ok) {
-        showMessage('success', 'Password changed successfully');
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        const data = await res.json();
-        showMessage('error', data.error || 'Failed to change password');
-      }
-    } catch (err) {
-      showMessage('error', 'Network error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleAddAddress = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,8 +170,9 @@ export default function CustomerSettingsPage() {
   if (!user) return null;
 
   return (
-    <DashboardLayout items={customerSidebarItems} title="Settings">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-safe">
+      <Navbar />
+      <main className="flex-grow pt-6 pb-24 container mx-auto px-4 max-w-5xl">
         
         {/* Header Section */}
         <div className="mb-8">
@@ -258,7 +221,6 @@ export default function CustomerSettingsPage() {
               <div className="space-y-1">
                 {[
                   { id: 'profile', label: 'Personal Info', icon: User },
-                  { id: 'password', label: 'Password & Security', icon: Lock },
                   { id: 'addresses', label: 'Address Book', icon: MapPin },
                 ].map((tab) => (
                   <button
@@ -330,67 +292,6 @@ export default function CustomerSettingsPage() {
               </div>
             )}
 
-            {/* Password Tab */}
-            {activeTab === 'password' && (
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 animate-in fade-in duration-500">
-                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                  <Shield className="h-6 w-6 text-primary-600" /> Password & Security
-                </h2>
-                
-                <form onSubmit={handleChangePassword} className="space-y-6 max-w-md">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">Current Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                      <input 
-                        type="password" 
-                        value={passwordData.currentPassword}
-                        onChange={e => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                        placeholder="••••••••"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">New Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                      <input 
-                        type="password" 
-                        value={passwordData.newPassword}
-                        onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                        placeholder="New Password"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">Confirm New Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                      <input 
-                        type="password" 
-                        value={passwordData.confirmPassword}
-                        onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                        placeholder="Confirm Password"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-4">
-                    <Button variant="primary" size="lg" className="w-full rounded-2xl shadow-lg" type="submit" disabled={isLoading}>
-                      {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : 'Update Password'}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            )}
 
             {/* Addresses Tab */}
             {activeTab === 'addresses' && (
@@ -485,7 +386,7 @@ export default function CustomerSettingsPage() {
 
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </main>
+    </div>
   );
 }

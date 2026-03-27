@@ -2,16 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { Sidebar, customerSidebarItems } from '@/components/layout/Sidebar';
 import { 
   ShoppingCart, 
   Package, 
-  Clock, 
+  MapPin, 
   CheckCircle2, 
   ChevronRight,
   Loader2,
-  Search,
-  History
+  Calendar,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
@@ -40,91 +39,87 @@ export default function CustomerOrdersPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'bg-amber-100 text-amber-700';
-      case 'PREPARING': return 'bg-blue-100 text-blue-700';
-      case 'READY': return 'bg-indigo-100 text-indigo-700';
-      case 'IN_TRANSIT': return 'bg-primary-100 text-primary-700';
-      case 'COMPLETED': return 'bg-emerald-100 text-emerald-700';
-      case 'CANCELLED': return 'bg-rose-100 text-rose-700';
-      default: return 'bg-slate-100 text-slate-700';
+      case 'PENDING': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'PREPARING': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'READY': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+      case 'IN_TRANSIT': return 'bg-primary-100 text-primary-700 border-primary-200';
+      case 'COMPLETED': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'CANCELLED': return 'bg-rose-100 text-rose-700 border-rose-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-safe">
       <Navbar />
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar items={customerSidebarItems} userRole="Customer" userName={user?.name || 'Customer'} />
-
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+      <main className="flex-grow pt-6 pb-24 container mx-auto px-4 max-w-3xl">
           
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-               <h1 className="text-2xl font-bold text-slate-900">My Orders</h1>
-               <p className="text-slate-500">View and track all your medicine orders.</p>
-            </div>
-            <Link href="/products">
-               <Button variant="primary" className="rounded-xl px-6">New Order</Button>
-            </Link>
+          <div className="flex flex-col mb-8">
+             <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">My Orders</h1>
+             <p className="text-slate-500 font-medium">View and track your previous deliveries.</p>
           </div>
 
+
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20">
+            <div className="flex flex-col items-center justify-center py-32">
                <Loader2 className="h-10 w-10 animate-spin text-primary-600 mb-4" />
-               <p className="text-slate-500">Retrieving your order history...</p>
+               <p className="text-slate-500 font-medium">Pulling up your orders...</p>
             </div>
           ) : orders.length > 0 ? (
             <div className="space-y-4">
                {orders.map(order => (
-                 <div key={order.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                       <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center shrink-0">
-                             <Package className="h-6 w-6 text-primary-600" />
-                          </div>
-                          <div>
-                             <div className="flex items-center gap-2 mb-1">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(order.status)}`}>
-                                   {order.status}
-                                </span>
-                                <span className="text-xs text-slate-400 font-medium">#{order.id.slice(0, 8)}</span>
-                             </div>
-                             <h3 className="font-bold text-slate-900">{order.items.length} Items from {order.pharmacy.name}</h3>
-                             <p className="text-sm text-slate-500">Ordered on {new Date(order.createdAt).toLocaleDateString()}</p>
-                          </div>
-                       </div>
+                 <Link href={`/tracking/${order.id}`} key={order.id} className="block bg-white rounded-3xl p-5 shadow-sm border border-slate-100 hover:border-primary-200 hover:shadow-md transition-all active:scale-[0.98]">
+                    <div className="flex flex-col gap-4">
                        
-                       <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-4 md:pt-0">
-                          <div className="text-right">
-                             <p className="text-xs text-slate-500 font-medium">Total Amount</p>
-                             <p className="font-bold text-slate-900 text-lg">ETB {order.totalAmount.toLocaleString()}</p>
-                          </div>
-                          <Link href={`/tracking/${order.id}`}>
-                             <Button variant="outline" className="rounded-xl flex items-center gap-2 group">
-                                Track <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                             </Button>
-                          </Link>
+                       {/* Top Row: Status & Order ID */}
+                       <div className="flex items-center justify-between">
+                          <span className={`px-2.5 py-1 rounded-md border text-[10px] font-black uppercase tracking-widest ${getStatusColor(order.status)}`}>
+                             {order.status.replace('_', ' ')}
+                          </span>
+                          <span className="text-xs text-slate-400 font-bold">#{order.id.slice(0, 8)}</span>
                        </div>
+
+                       {/* Middle Row: Content */}
+                       <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center shrink-0 border border-slate-100">
+                             <Package className="h-6 w-6 text-slate-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                             <h3 className="font-black text-slate-900 text-base truncate">{order.pharmacy.name}</h3>
+                             <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                               {order.items.length} {order.items.length === 1 ? 'item' : 'items'} • ETB {order.totalAmount.toLocaleString()}
+                             </p>
+                          </div>
+                          <div className="shrink-0 h-8 w-8 bg-slate-50 rounded-full flex items-center justify-center">
+                             <ChevronRight className="h-4 w-4 text-slate-400" />
+                          </div>
+                       </div>
+
+                       {/* Bottom Row: Date */}
+                       <div className="border-t border-slate-50 pt-3 flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                          <Calendar className="h-3.5 w-3.5 opacity-70" />
+                          {new Date(order.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                       </div>
+
                     </div>
-                 </div>
+                 </Link>
                ))}
             </div>
           ) : (
-            <div className="bg-white p-20 text-center rounded-3xl border border-dashed border-slate-300">
+            <div className="bg-white p-12 text-center rounded-[2.5rem] border border-dashed border-slate-200 mt-8">
                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                   <ShoppingCart className="h-10 w-10 text-slate-300" />
                </div>
                <h3 className="text-xl font-bold text-slate-900 mb-2">No orders yet</h3>
-               <p className="text-slate-500 mb-8 max-w-sm mx-auto">You haven't placed any orders yet. Start exploring medicines and products from verified pharmacies.</p>
-               <Link href="/products">
-                  <Button variant="primary" size="lg" className="rounded-2xl px-8">Start Shopping</Button>
+               <p className="text-slate-500 mb-8 max-w-xs mx-auto text-sm leading-relaxed">It looks like you haven't placed any orders. Discover medicines from top pharmacies.</p>
+               <Link href="/">
+                  <Button variant="primary" size="lg" className="rounded-2xl px-8 font-black w-full sm:w-auto text-base h-14">Start Shopping</Button>
                </Link>
             </div>
           )}
 
-        </main>
-      </div>
+      </main>
     </div>
   );
 }

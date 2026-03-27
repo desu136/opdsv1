@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Pill
+  Pill,
+  Tag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -193,6 +194,8 @@ export const pharmacySidebarItems: SidebarItem[] = [
   { name: 'Order Queue', href: '/pharmacy/orders', icon: ShoppingCart },
   { name: 'Inventory', href: '/pharmacy/inventory', icon: Package },
   { name: 'Prescriptions', href: '/pharmacy/prescriptions', icon: ClipboardList },
+  { name: 'Special Offers', href: '/pharmacy/offers', icon: Tag },
+  { name: 'Branding', href: '/pharmacy/profile', icon: Store },
   { name: 'Settings', href: '/pharmacy/settings', icon: Settings },
 ];
 

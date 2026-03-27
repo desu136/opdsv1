@@ -165,13 +165,13 @@ export default function PharmacyInventoryPage() {
         {/* Add Product Modal */}
         {isAddModalOpen && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-slate-900">Add Product</h2>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                <h2 className="text-xl font-black text-slate-900">Add Product</h2>
                 <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors"><X className="h-5 w-5 text-slate-400" /></button>
               </div>
 
-              <form className="p-6 space-y-4" onSubmit={async (e) => {
+              <form className="p-8 space-y-6" onSubmit={async (e) => {
                 e.preventDefault();
                 const target = e.target as any;
                 const name = target.name.value;
@@ -179,20 +179,10 @@ export default function PharmacyInventoryPage() {
                 const price = target.price.value;
                 const stock = target.stock.value;
                 const requiresRx = target.requiresRx.checked;
-                const fileInput = target.image;
+                const imageUrl = target.imageUrl.value;
                 
                 setIsLoading(true);
                 try {
-                  let imageUrl = '';
-                  if (fileInput.files[0]) {
-                    const formData = new FormData();
-                    formData.append('file', fileInput.files[0]);
-                    formData.append('folder', 'products');
-                    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-                    const uploadData = await uploadRes.json();
-                    imageUrl = uploadData.url;
-                  }
-
                   const res = await fetch('/api/inventory', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -207,40 +197,178 @@ export default function PharmacyInventoryPage() {
                 } catch (err) { console.error(err); } finally { setIsLoading(false); }
               }}>
                 <div className="space-y-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="relative group">
+                       <div className="w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+                          <input type="hidden" name="imageUrl" id="new-product-imageUrl" />
+                          <div id="new-product-preview" className="w-full h-full hidden">
+                             <img src="" alt="Preview" className="w-full h-full object-cover" />
+                          </div>
+                          <ImageIcon id="new-product-placeholder" className="h-8 w-8 text-slate-300" />
+                       </div>
+                       <label className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer">
+                          <Upload className="h-5 w-5 text-white" />
+                          <input type="file" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                            const data = await res.json();
+                            if (data.url) {
+                              (document.getElementById('new-product-imageUrl') as HTMLInputElement).value = data.url;
+                              const preview = document.getElementById('new-product-preview') as HTMLDivElement;
+                              const img = preview.querySelector('img') as HTMLImageElement;
+                              img.src = data.url;
+                              preview.classList.remove('hidden');
+                              document.getElementById('new-product-placeholder')?.classList.add('hidden');
+                            }
+                          }} />
+                       </label>
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Full Name</label>
-                    <input name="name" required type="text" className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-slate-900" />
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Medicine Name</label>
+                    <input name="name" required type="text" className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-slate-900" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Category</label>
-                      <select name="category" className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl outline-none text-slate-900">
-                        {['Pain Relief', 'Antibiotics', 'Supplements', 'Allergy', 'First Aid'].map(c => <option key={c}>{c}</option>)}
+                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Category</label>
+                      <select name="category" className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900">
+                        {['Pain Relief', 'Antibiotics', 'Supplements', 'Allergy', 'First Aid', 'Vitamins', 'Baby Care', 'Heart Care'].map(c => <option key={c}>{c}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Price (ETB)</label>
-                      <input name="price" required type="number" step="0.01" className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl outline-none text-slate-900" />
+                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Price (ETB)</label>
+                      <input name="price" required type="number" step="0.01" className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900" />
                     </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Stock Count</label>
-                    <input name="stock" required type="number" className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl outline-none text-slate-900" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input name="requiresRx" type="checkbox" className="w-4 h-4 rounded" />
-                    <label className="text-xs font-bold text-slate-600">Requires Prescription</label>
-                  </div>
-                  <div className="p-4 border-2 border-dashed border-slate-100 rounded-2xl text-center group cursor-pointer relative">
-                    <input name="image" type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
-                    <Upload className="h-6 w-6 text-slate-300 mx-auto mb-1 group-hover:text-primary-500 transition-colors" />
-                    <p className="text-[10px] font-black uppercase text-slate-400">Click to upload photo</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Stock Count</label>
+                      <input name="stock" required type="number" className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900" />
+                    </div>
+                    <div className="flex flex-col justify-end pb-3">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input name="requiresRx" type="checkbox" className="w-5 h-5 rounded-lg border-slate-200 text-primary-600 focus:ring-primary-500" />
+                        <span className="text-xs font-black text-slate-600 uppercase tracking-tighter">Requires Rx</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
-                <div className="pt-4 flex gap-3">
-                  <Button variant="ghost" type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 rounded-xl font-bold">Cancel</Button>
-                  <Button variant="primary" type="submit" disabled={isLoading} className="flex-1 rounded-xl font-bold shadow-lg shadow-primary-200">
+                <div className="pt-4 flex gap-4">
+                  <Button variant="ghost" type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 rounded-2xl font-bold h-12">Cancel</Button>
+                  <Button variant="primary" type="submit" disabled={isLoading} className="flex-1 rounded-2xl font-black h-12 shadow-lg shadow-primary-200 uppercase tracking-widest">
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Save Product'}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Product Modal */}
+        {isEditModalOpen && editingItem && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                   <h2 className="text-xl font-black text-slate-900 tracking-tight">Edit Medicine</h2>
+                   <p className="text-xs text-slate-500 font-medium">Update details for {editingItem.name}</p>
+                </div>
+                <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors"><X className="h-5 w-5 text-slate-400" /></button>
+              </div>
+
+              <form className="p-8 space-y-6" onSubmit={async (e) => {
+                e.preventDefault();
+                const target = e.target as any;
+                const name = target.name.value;
+                const category = target.category.value;
+                const price = target.price.value;
+                const stock = target.stock.value;
+                const requiresRx = target.requiresRx.checked;
+                const imageUrl = target.imageUrl.value;
+                
+                setIsLoading(true);
+                try {
+                  const res = await fetch(`/api/inventory/${editingItem.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, category, price, stock, requiresPrescription: requiresRx, imageUrl })
+                  });
+
+                  if (res.ok) {
+                    setIsEditModalOpen(false);
+                    fetchInventory();
+                  }
+                } catch (err) { console.error(err); } finally { setIsLoading(false); }
+              }}>
+                <div className="space-y-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="relative group">
+                       <div className="w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+                          <input type="hidden" name="imageUrl" id="edit-product-imageUrl" defaultValue={editingItem.imageUrl} />
+                          <div id="edit-product-preview" className={`w-full h-full ${editingItem.imageUrl ? '' : 'hidden'}`}>
+                             <img src={editingItem.imageUrl || ''} alt="Preview" className="w-full h-full object-cover" />
+                          </div>
+                          <ImageIcon id="edit-product-placeholder" className={`h-8 w-8 text-slate-300 ${editingItem.imageUrl ? 'hidden' : ''}`} />
+                       </div>
+                       <label className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer">
+                          <Upload className="h-5 w-5 text-white" />
+                          <input type="file" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                            const data = await res.json();
+                            if (data.url) {
+                              (document.getElementById('edit-product-imageUrl') as HTMLInputElement).value = data.url;
+                              const preview = document.getElementById('edit-product-preview') as HTMLDivElement;
+                              const img = preview.querySelector('img') as HTMLImageElement;
+                              img.src = data.url;
+                              preview.classList.remove('hidden');
+                              document.getElementById('edit-product-placeholder')?.classList.add('hidden');
+                            }
+                          }} />
+                       </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Medicine Name</label>
+                    <input name="name" required defaultValue={editingItem.name} type="text" className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-slate-900" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Category</label>
+                      <select name="category" defaultValue={editingItem.category} className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900 text-sm">
+                        {['Pain Relief', 'Antibiotics', 'Supplements', 'Allergy', 'First Aid', 'Vitamins', 'Baby Care', 'Heart Care'].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Price (ETB)</label>
+                      <input name="price" required defaultValue={editingItem.price} type="number" step="0.01" className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Stock Count</label>
+                      <input name="stock" required defaultValue={editingItem.stock} type="number" className="w-full px-4 py-3.5 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900" />
+                    </div>
+                    <div className="flex flex-col justify-end pb-3">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input name="requiresRx" type="checkbox" defaultChecked={editingItem.requiresPrescription} className="w-5 h-5 rounded-lg border-slate-200 text-primary-600 focus:ring-primary-500" />
+                        <span className="text-xs font-black text-slate-600 uppercase tracking-tighter">Requires Rx</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-4 flex gap-4">
+                  <Button variant="ghost" type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 rounded-2xl font-bold h-12">Cancel</Button>
+                  <Button variant="primary" type="submit" disabled={isLoading} className="flex-1 rounded-2xl font-black h-12 shadow-lg shadow-primary-200 uppercase tracking-widest">
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Update Medicine'}
                   </Button>
                 </div>
               </form>
@@ -250,3 +378,4 @@ export default function PharmacyInventoryPage() {
     </DashboardLayout>
   );
 }
+

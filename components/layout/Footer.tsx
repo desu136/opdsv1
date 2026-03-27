@@ -4,7 +4,7 @@ import { Pill, MapPin, Phone, Mail, Facebook, Twitter, Instagram } from 'lucide-
 
 export const Footer = () => {
   return (
-    <footer className="bg-slate-900 pt-16 pb-8 text-slate-300">
+    <footer className="hidden md:block bg-slate-900 pt-16 pb-8 text-slate-300">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           

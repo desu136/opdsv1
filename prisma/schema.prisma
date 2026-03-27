@@ -49,6 +49,10 @@ model Pharmacy {
   email              String        @unique
   phone              String
   address            String?
+  logoUrl            String?
+  coverImageUrl      String?
+  description        String?       @db.Text
+  workingHours       String?
   licenseNumber      String        @unique
   licenseDocumentUrl String?
   status             AccountStatus @default(PENDING_REVIEW)
@@ -58,6 +62,25 @@ model Pharmacy {
   orders             Order[]
   owner              User          @relation(fields: [ownerId], references: [id])
   inventory          Product[]
+  offers             Offer[]
+}
+
+model Offer {
+  id          String   @id @default(uuid())
+  pharmacyId  String
+  productId   String
+  title       String
+  discountPct Float
+  startDate   DateTime
+  endDate     DateTime
+  imageUrl    String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  pharmacy    Pharmacy @relation(fields: [pharmacyId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@index([pharmacyId], map: "Offer_pharmacyId_fkey")
+  @@index([productId], map: "Offer_productId_fkey")
 }
 
 model Product {
@@ -73,6 +96,7 @@ model Product {
   createdAt            DateTime    @default(now())
   orderItems           OrderItem[]
   pharmacy             Pharmacy    @relation(fields: [pharmacyId], references: [id])
+  offers               Offer[]
 
   @@index([pharmacyId], map: "Product_pharmacyId_fkey")
 }

@@ -24,7 +24,15 @@ export async function GET(request: Request) {
     let products = await prisma.product.findMany({
       where: whereClause,
       include: {
-        pharmacy: { select: { name: true, id: true, lat: true, lng: true } }
+        pharmacy: { select: { name: true, id: true, lat: true, lng: true } },
+        offers: {
+          where: {
+            status: 'ACTIVE',
+            startDate: { lte: new Date() },
+            endDate: { gte: new Date() }
+          },
+          take: 1
+        }
       },
       orderBy: { createdAt: 'desc' }
     });

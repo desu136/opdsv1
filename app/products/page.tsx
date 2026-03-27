@@ -9,38 +9,38 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { Search, Filter, SlidersHorizontal, ChevronDown, Loader2 } from 'lucide-react';
 
-const categories = ['All', 'Pain Relief', 'Antibiotics', 'Vitamins & Supplements', 'First Aid', 'Chronic Care', 'Baby Care'];
+const categories = ['All', 'Pain Relief', 'Cold & Flu', 'Vitamins', 'Antibiotics', 'Heart Care', 'Baby Care', 'Diabetes', 'Personal Care', 'General'];
 
 function MedicinesListing() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const initialQuery = searchParams.get('query') || '';
   
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeCategory, setActiveCategory] = useState(() => searchParams.get('category') || 'All');
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [products, setProducts] = useState<ProductProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Update searchQuery if URL parameter changes
+    // Update searchQuery and activeCategory if URL params change
     const query = searchParams.get('query');
-    if (query !== null) {
-      setSearchQuery(query);
-    }
+    const cat = searchParams.get('category');
+    if (query !== null) setSearchQuery(query);
+    if (cat) setActiveCategory(cat);
+    else setActiveCategory('All');
   }, [searchParams]);
 
   useEffect(() => {
     const fetchProducts = async (lat?: number, lng?: number) => {
+      setIsLoading(true);
       try {
-        let url = '/api/inventory';
-        if (lat && lng) {
-          url += `?lat=${lat}&lng=${lng}`;
-        }
+        const params = new URLSearchParams();
+        if (lat && lng) { params.set('lat', lat.toString()); params.set('lng', lng.toString()); }
+        if (activeCategory && activeCategory !== 'All') params.set('category', activeCategory);
         
-        const res = await fetch(url);
+        const res = await fetch(`/api/inventory?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
-          // Map API response to ProductProps
           const mapped = data.map((p: any) => ({
             id: p.id,
             name: p.name,
@@ -66,7 +66,7 @@ function MedicinesListing() {
     const getCoordsAndFetch = () => {
       if (user?.role === 'CUSTOMER' && (user as any).lastLat) {
         fetchProducts((user as any).lastLat, (user as any).lastLng);
-      } else if (navigator.geolocation) {
+      } else if (typeof navigator !== 'undefined' && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => fetchProducts(pos.coords.latitude, pos.coords.longitude),
           () => fetchProducts()
@@ -77,7 +77,7 @@ function MedicinesListing() {
     };
 
     getCoordsAndFetch();
-  }, [user]);
+  }, [user, activeCategory]);
 
   const filteredProducts = products.filter(p => {
     const matchesCategory = activeCategory === 'All' || p.category === activeCategory;

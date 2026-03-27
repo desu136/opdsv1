@@ -1,0 +1,210 @@
+
+> my-next-app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.126.27:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 2.4s
+○ Compiling / ...
+ GET / 200 in 8.9s (compile: 8.0s, render: 977ms)
+ GET /api/auth/me 401 in 1316ms (compile: 1229ms, render: 87ms)
+ GET /login 200 in 458ms (compile: 219ms, render: 239ms)
+ GET /api/auth/me 401 in 68ms (compile: 30ms, render: 38ms)
+ GET / 200 in 843ms (compile: 83ms, render: 759ms)
+Fetch pharmacies error: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].pharmacy.findMany()` invocation in
+C:\Users\HP\Documents\syntaxproject\pharmacy\my-next-app\.next\dev\server\chunks\[root-of-the-server]__470c58b2._.js:163:163
+
+  160 const lat = searchParams.get('lat');
+  161 const lng = searchParams.get('lng');
+  162 const limit = searchParams.get('limit');
+→ 163 let pharmacies = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].pharmacy.findMany(
+Can't reach database server at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`
+
+Please make sure your database server is running at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`.
+    at <unknown> (app\api\pharmacies\route.ts:29:44)
+    at async GET (app\api\pharmacies\route.ts:29:22)
+  27 |     const limit = searchParams.get('limit');
+  28 |
+> 29 |     let pharmacies = await prisma.pharmacy.findMany({
+     |                                            ^
+  30 |       where: whereClause,
+  31 |       include: {
+  32 |         owner: { select: { name: true, email: true, phone: true } } {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+Auth /me error: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].user.findUnique()` invocation in
+C:\Users\HP\Documents\syntaxproject\pharmacy\my-next-app\.next\dev\server\chunks\[root-of-the-server]__52c8adf6._.js:162:155
+
+  159         status: 401
+  160     });
+  161 }
+→ 162 const user = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].user.findUnique(
+Can't reach database server at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`
+
+Please make sure your database server is running at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`.
+    at <unknown> (app\api\auth\me\route.ts:21:36)
+    at async GET (app\api\auth\me\route.ts:21:18)
+  19 |     }
+  20 |
+> 21 |     const user = await prisma.user.findUnique({
+     |                                    ^
+  22 |       where: { id: payload.id },
+  23 |       include: {
+  24 |         pharmacy: true {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 500 in 12.5s (compile: 2.5s, render: 10.0s)
+ GET /api/auth/me 500 in 4.9s (compile: 24ms, render: 4.9s)
+Fetch pharmacies error: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].pharmacy.findMany()` invocation in
+C:\Users\HP\Documents\syntaxproject\pharmacy\my-next-app\.next\dev\server\chunks\[root-of-the-server]__470c58b2._.js:163:163
+
+  160 const lat = searchParams.get('lat');
+  161 const lng = searchParams.get('lng');
+  162 const limit = searchParams.get('limit');
+→ 163 let pharmacies = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].pharmacy.findMany(
+Can't reach database server at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`
+
+Please make sure your database server is running at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`.
+    at <unknown> (app\api\pharmacies\route.ts:29:44)
+    at async GET (app\api\pharmacies\route.ts:29:22)
+  27 |     const limit = searchParams.get('limit');
+  28 |
+> 29 |     let pharmacies = await prisma.pharmacy.findMany({
+     |                                            ^
+  30 |       where: whereClause,
+  31 |       include: {
+  32 |         owner: { select: { name: true, email: true, phone: true } } {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 500 in 6.0s (compile: 27ms, render: 6.0s)
+ GET /products?query=pharmacy 200 in 1079ms (compile: 834ms, render: 245ms)
+ GET / 200 in 202ms (compile: 29ms, render: 173ms)
+ GET /api/auth/me 401 in 41ms (compile: 22ms, render: 19ms)
+ GET /api/inventory?lat=9.02426&lng=38.675488 200 in 2.4s (compile: 632ms, render: 1795ms)
+ GET /pharmacies 200 in 1698ms (compile: 1151ms, render: 548ms)
+ GET /api/auth/me 401 in 44ms (compile: 14ms, render: 30ms)
+ GET /api/pharmacies?lat=9.02426&lng=38.675488&limit=6 200 in 8.4s (compile: 205ms, render: 8.2s)
+ GET /api/pharmacies 200 in 6.4s (compile: 18ms, render: 6.4s)
+ GET /products?pharmacyId=ccc6ddb1-972e-4dac-b52f-291a7127eab5 200 in 82ms (compile: 38ms, render: 44ms)
+ GET /api/inventory?lat=9.02426&lng=38.675488 200 in 4.1s (compile: 6ms, render: 4.1s)
+ GET /api/inventory?lat=9.02426&lng=38.675488 200 in 4.8s (compile: 12ms, render: 4.8s)
+ GET /pharmacies/ccc6ddb1-972e-4dac-b52f-291a7127eab5 200 in 4.9s (compile: 4.7s, render: 263ms)
+ GET /api/auth/me 401 in 46ms (compile: 24ms, render: 22ms)
+ GET /api/inventory?pharmacyId=ccc6ddb1-972e-4dac-b52f-291a7127eab5&lat=9&lng=38.79 200 in 1415ms (compile: 12ms, render: 1404ms)
+Fetch pharmacy error: Error [PrismaClientKnownRequestError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].pharmacy.findUnique()` invocation in
+C:\Users\HP\Documents\syntaxproject\pharmacy\my-next-app\.next\dev\server\chunks\[root-of-the-server]__3aadf64d._.js:511:163
+
+  508 async function GET(request, { params }) {
+  509     try {
+  510         const { id } = await params;
+→ 511         const pharmacy = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].pharmacy.findUnique(
+Can't reach database server at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`
+
+Please make sure your database server is running at `mysql-2f0e025e-kasayedesu19-a4e2.f.aivencloud.com:20751`.
+    at <unknown> (app\api\pharmacies\[id]\route.ts:13:44)
+    at async GET (app\api\pharmacies\[id]\route.ts:13:22)
+  11 |   try {
+  12 |     const { id } = await params;
+> 13 |     const pharmacy = await prisma.pharmacy.findUnique({
+     |                                            ^
+  14 |       where: { id },
+  15 |       include: {
+  16 |         owner: { select: { name: true, email: true, phone: true } }, {
+  code: 'P1001',
+  clientVersion: '5.22.0',
+  meta: [Object]
+}
+ GET /api/pharmacies/ccc6ddb1-972e-4dac-b52f-291a7127eab5?lat=9&lng=38.79 500 in 35.7s (compile: 4.2s, render: 31.5s)
+ GET / 200 in 979ms (compile: 79ms, render: 900ms)
+ GET /api/auth/me 401 in 22ms (compile: 6ms, render: 15ms)
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 200 in 2.8s (compile: 10ms, render: 2.8s)
+ GET /pharmacies/adee08b0-c484-49e9-bd66-c6441478b2c5 200 in 352ms (compile: 75ms, render: 277ms)
+ GET /api/inventory?pharmacyId=adee08b0-c484-49e9-bd66-c6441478b2c5&lat=9.02426&lng=38.675488 200 in 2.0s (compile: 58ms, render: 1970ms)
+ GET /api/inventory?pharmacyId=adee08b0-c484-49e9-bd66-c6441478b2c5&lat=9.02426&lng=38.675488 200 in 721ms (compile: 7ms, render: 713ms)
+ GET /api/pharmacies/adee08b0-c484-49e9-bd66-c6441478b2c5?lat=9.02426&lng=38.675488 200 in 3.1s (compile: 158ms, render: 2.9s)
+ GET /api/pharmacies/adee08b0-c484-49e9-bd66-c6441478b2c5?lat=9.02426&lng=38.675488 200 in 1285ms (compile: 38ms, render: 1247ms)
+ GET / 200 in 298ms (compile: 34ms, render: 264ms)
+ GET /api/auth/me 401 in 34ms (compile: 15ms, render: 20ms)
+ GET /api/pharmacies?lat=9.02426&lng=38.675488&limit=6 200 in 8.2s (compile: 10ms, render: 8.2s)
+ GET /products 200 in 325ms (compile: 50ms, render: 276ms)
+ GET /api/auth/me 401 in 71ms (compile: 21ms, render: 50ms)
+ GET /api/inventory?lat=9.02426&lng=38.675488 200 in 5.1s (compile: 8ms, render: 5.1s)
+ GET /products/bb769867-951a-4186-b2b3-58e2963dc297 200 in 5.6s (compile: 5.0s, render: 654ms)
+Fetch product error: Error [PrismaClientKnownRequestError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].product.findUnique()` invocation in
+C:\Users\HP\Documents\syntaxproject\pharmacy\my-next-app\.next\dev\server\chunks\[root-of-the-server]__dab93657._.js:150:161
+
+  147 async function GET(request, { params }) {
+  148     try {
+  149         const { id } = await params;
+→ 150         const product = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].product.findUnique(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at <unknown> (app\api\inventory\[id]\route.ts:12:42)
+    at async GET (app\api\inventory\[id]\route.ts:12:21)
+  10 |   try {
+  11 |     const { id } = await params;
+> 12 |     const product = await prisma.product.findUnique({
+     |                                          ^
+  13 |       where: { id },
+  14 |       include: {
+  15 |         pharmacy: { {
+  code: 'P2024',
+  clientVersion: '5.22.0',
+  meta: [Object]
+}
+ GET /api/inventory/bb769867-951a-4186-b2b3-58e2963dc297 500 in 13.7s (compile: 3.2s, render: 10.4s)
+ GET /api/inventory/bb769867-951a-4186-b2b3-58e2963dc297 200 in 1445ms (compile: 80ms, render: 1364ms)
+✓ Finished filesystem cache database compaction in 19.9s
+ GET /products 200 in 434ms (compile: 76ms, render: 358ms)
+ GET /api/auth/me 401 in 38ms (compile: 13ms, render: 25ms)
+ GET /api/inventory?lat=9&lng=38.79 200 in 1348ms (compile: 11ms, render: 1337ms)
+ GET / 200 in 373ms (compile: 54ms, render: 320ms)
+ GET /api/auth/me 401 in 16ms (compile: 6ms, render: 10ms)
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 200 in 623ms (compile: 4ms, render: 619ms)
+ GET /products?query=Panadol 200 in 181ms (compile: 52ms, render: 128ms)
+ GET /api/inventory?lat=9&lng=38.79 200 in 837ms (compile: 10ms, render: 827ms)
+ GET /api/inventory?lat=9&lng=38.79 200 in 475ms (compile: 8ms, render: 467ms)
+ GET / 200 in 353ms (compile: 48ms, render: 305ms)
+ GET /api/auth/me 401 in 16ms (compile: 6ms, render: 10ms)
+ GET /api/pharmacies?lat=9.02426&lng=38.675488&limit=6 200 in 3.0s (compile: 5ms, render: 3.0s)
+ GET / 200 in 49ms (compile: 27ms, render: 22ms)
+ GET /customer/orders 200 in 1967ms (compile: 1850ms, render: 117ms)
+ GET /customer/orders 200 in 48ms (compile: 21ms, render: 27ms)
+ GET / 200 in 46ms (compile: 21ms, render: 26ms)
+ GET /customer/orders 200 in 59ms (compile: 33ms, render: 26ms)
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 200 in 3.9s (compile: 17ms, render: 3.9s)
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 200 in 4.6s (compile: 7ms, render: 4.6s)
+ GET /customer/dashboard 200 in 1007ms (compile: 958ms, render: 49ms)
+ GET /customer/orders 200 in 41ms (compile: 18ms, render: 23ms)
+ GET /login 200 in 38ms (compile: 8ms, render: 29ms)
+ GET /customer/dashboard 200 in 53ms (compile: 22ms, render: 31ms)
+ GET /customer/prescriptions 200 in 1589ms (compile: 1533ms, render: 56ms)
+ GET /customer/settings 200 in 1291ms (compile: 1236ms, render: 55ms)
+ GET / 200 in 59ms (compile: 34ms, render: 24ms)
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 200 in 4.7s (compile: 7ms, render: 4.7s)
+ GET /api/pharmacies?lat=9&lng=38.79&limit=6 200 in 1072ms (compile: 9ms, render: 1063ms)
+ GET /pharmacies 200 in 59ms (compile: 28ms, render: 30ms)
+ GET /api/pharmacies 200 in 507ms (compile: 13ms, render: 495ms)
+ GET /api/pharmacies 200 in 1205ms (compile: 5ms, render: 1201ms)
+ GET /tracking 200 in 588ms (compile: 539ms, render: 50ms)
+ GET /products 200 in 42ms (compile: 16ms, render: 26ms)
+ GET /api/inventory?lat=9.02426&lng=38.675488 200 in 1899ms (compile: 5ms, render: 1894ms)
+ GET /api/inventory?lat=9.02426&lng=38.675488 200 in 1174ms (compile: 11ms, render: 1163ms)
+ GET /customer/dashboard 200 in 53ms (compile: 21ms, render: 32ms)
+ GET /api/inventory?lat=9&lng=38.79 200 in 868ms (compile: 5ms, render: 863ms)
+ GET /api/inventory?lat=9&lng=38.79 200 in 564ms (compile: 11ms, render: 554ms)
+ GET /customer/orders 200 in 123ms (compile: 34ms, render: 88ms)
+ GET /customer/orders 200 in 46ms (compile: 19ms, render: 27ms)
+ GET /login 200 in 27ms (compile: 6ms, render: 21ms)
+^C^C

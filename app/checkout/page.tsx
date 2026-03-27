@@ -156,8 +156,8 @@ export default function CheckoutPage() {
               {requiresPrescription ? ' The pharmacy is reviewing your prescription.' : ' You will receive a notification when the agent picks it up.'}
             </p>
             <div className="space-y-4">
-              <Link href="/customer/dashboard">
-                <Button className="w-full h-12 rounded-xl text-lg font-bold">Track My Order</Button>
+              <Link href="/customer/orders">
+                <Button className="w-full h-12 rounded-xl text-lg font-bold">Track My Orders</Button>
               </Link>
               <Link href="/products">
                 <Button variant="outline" className="w-full h-12 rounded-xl">Continue Shopping</Button>
@@ -174,89 +174,89 @@ export default function CheckoutPage() {
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <main className="flex-grow container mx-auto px-4 py-8 md:py-12">
+      <main className="flex-grow container mx-auto px-4 py-4 md:py-12 pb-32 md:pb-12">
         <div className="max-w-5xl mx-auto">
           
           {/* Checkout Steps Header */}
-          <div className="flex items-center justify-center mb-12">
-            <div className="flex items-center w-full max-w-2xl px-4">
+          <div className="flex items-center justify-center mb-10">
+            <div className="flex items-center w-full max-w-xl px-2">
               <div className={`flex flex-col items-center relative group`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${step >= 1 ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-slate-200 text-slate-500'}`}>
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base font-bold transition-all ${step >= 1 ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-slate-200 text-slate-500'}`}>
                   1
                 </div>
-                <span className={`absolute -bottom-7 whitespace-nowrap text-xs font-bold uppercase tracking-wider ${step >= 1 ? 'text-primary-600' : 'text-slate-400'}`}>Shipping</span>
+                <span className={`absolute -bottom-6 whitespace-nowrap text-[9px] md:text-xs font-bold uppercase tracking-wider ${step >= 1 ? 'text-primary-600' : 'text-slate-400'}`}>Shipping</span>
               </div>
 
-              <div className={`flex-grow h-1 mx-4 rounded-full transition-colors ${step >= 2 ? 'bg-primary-600' : 'bg-slate-200'}`}></div>
+              <div className={`flex-grow h-1 mx-2 md:mx-4 rounded-full transition-colors ${step >= 2 ? 'bg-primary-600' : 'bg-slate-200'}`}></div>
 
               <div className={`flex flex-col items-center relative`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${step >= 2 ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-slate-200 text-slate-500'}`}>
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base font-bold transition-all ${step >= 2 ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-slate-200 text-slate-500'}`}>
                   2
                 </div>
-                <span className={`absolute -bottom-7 whitespace-nowrap text-xs font-bold uppercase tracking-wider ${step >= 2 ? 'text-primary-600' : 'text-slate-400'}`}>
+                <span className={`absolute -bottom-6 whitespace-nowrap text-[9px] md:text-xs font-bold uppercase tracking-wider ${step >= 2 ? 'text-primary-600' : 'text-slate-400'}`}>
                   {requiresPrescription ? 'Prescription' : 'Review'}
                 </span>
               </div>
 
-              <div className={`flex-grow h-1 mx-4 rounded-full transition-colors ${step >= 3 ? 'bg-primary-600' : 'bg-slate-200'}`}></div>
+              <div className={`flex-grow h-1 mx-2 md:mx-4 rounded-full transition-colors ${step >= 3 ? 'bg-primary-600' : 'bg-slate-200'}`}></div>
 
               <div className={`flex flex-col items-center relative`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${step >= 3 ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-slate-200 text-slate-500'}`}>
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base font-bold transition-all ${step >= 3 ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-slate-200 text-slate-500'}`}>
                   3
                 </div>
-                <span className={`absolute -bottom-7 whitespace-nowrap text-xs font-bold uppercase tracking-wider ${step >= 3 ? 'text-primary-600' : 'text-slate-400'}`}>Payment</span>
+                <span className={`absolute -bottom-6 whitespace-nowrap text-[9px] md:text-xs font-bold uppercase tracking-wider ${step >= 3 ? 'text-primary-600' : 'text-slate-400'}`}>Payment</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
             
             {/* Step Content */}
             <div className="flex-1">
               {error && (
-                <div className="mb-6 bg-red-50 border border-red-100 text-red-700 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                  <AlertCircle className="h-5 w-5 shrink-0" />
-                  <p className="text-sm font-medium">{error}</p>
+                <div className="mb-4 bg-red-50 border border-red-100 text-red-700 p-3 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <p className="text-xs font-medium">{error}</p>
                 </div>
               )}
 
               {/* Step 1: Shipping Address */}
               {step === 1 && (
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-                  <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
-                    <MapPin className="h-6 w-6 text-primary-600" />
+                <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-sm border border-slate-200">
+                  <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                    <MapPin className="h-5 w-5 md:h-6 md:w-6 text-primary-600" />
                     Delivery Address
                   </h2>
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {hasCoordinates && (
-                      <div className="mb-6 bg-primary-50 border border-primary-100 p-4 rounded-2xl flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 shrink-0">
-                          <MapPin className="h-5 w-5" />
+                      <div className="mb-4 bg-primary-50 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 shrink-0">
+                          <MapPin className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-primary-900 font-bold text-sm">Location Detected</p>
-                          <p className="text-primary-700 text-xs">We'll deliver to your current phone location.</p>
+                          <p className="text-primary-900 font-bold text-xs">Location Detected</p>
+                          <p className="text-primary-700 text-[10px]">We'll deliver to your current phone location.</p>
                         </div>
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
-                        Street Address / Landmark {hasCoordinates && <span className="text-slate-400 font-normal normal-case">(Optional - location detected)</span>}
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest">
+                        Street Address / Landmark {hasCoordinates && <span className="text-slate-400 font-normal normal-case">(Optional)</span>}
                       </label>
                       <input 
                         type="text" 
-                        placeholder={hasCoordinates ? "Current location used by default..." : "e.g. Near Bole Medhanialem, House 123"} 
-                        className="w-full px-5 py-4 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900"
+                        placeholder={hasCoordinates ? "Current location used by default..." : "e.g. Near Bole Medhanialem"} 
+                        className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900 text-sm"
                         value={address.street}
                         onChange={(e) => setAddress({...address, street: e.target.value})}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">City</label>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest">City</label>
                         <select 
-                          className="w-full px-5 py-4 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900"
+                          className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900 text-sm"
                           value={address.city}
                           onChange={(e) => setAddress({...address, city: e.target.value})}
                         >
@@ -266,32 +266,32 @@ export default function CheckoutPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Phone Number</label>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest">Phone Number</label>
                         <input 
                           type="tel" 
                           placeholder="+251 9..." 
-                          className="w-full px-5 py-4 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900"
+                          className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900 text-sm"
                           value={address.phone}
                           onChange={(e) => setAddress({...address, phone: e.target.value})}
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Additional Instructions (Optional)</label>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest">Instructions (Optional)</label>
                       <textarea 
-                        rows={3}
-                        placeholder="Special delivery notes..." 
-                        className="w-full px-5 py-4 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900"
+                        rows={2}
+                        placeholder="e.g. Ring doorbell..." 
+                        className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all outline-none text-slate-900 text-sm"
                         value={address.notes}
                         onChange={(e) => setAddress({...address, notes: e.target.value})}
                       ></textarea>
                     </div>
                     <Button 
                       onClick={handleNextStep} 
-                      className="w-full h-14 rounded-2xl font-bold text-lg mt-4 group"
+                      className="w-full h-12 rounded-xl font-bold text-base mt-2 group"
                     >
                       Continue
-                      <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </div>
                 </div>
@@ -299,19 +299,19 @@ export default function CheckoutPage() {
 
               {/* Step 2: Prescription Upload */}
               {step === 2 && (
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-                  <h2 className="text-2xl font-black text-slate-900 mb-4 flex items-center gap-3">
-                    <Camera className="h-6 w-6 text-primary-600" />
-                    Take Photo of Prescription
+                <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-sm border border-slate-200">
+                  <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-2 flex items-center gap-3">
+                    <Camera className="h-5 w-5 md:h-6 md:w-6 text-primary-600" />
+                    Prescription
                   </h2>
-                  <p className="text-slate-500 mb-8 font-medium">Some items in your cart require a medical prescription. Use your camera to take a clear photo of it.</p>
+                  <p className="text-slate-500 mb-6 text-xs md:text-sm font-medium">Please take a clear photo of your prescription.</p>
                   
-                  <div className="border-4 border-dashed border-slate-100 rounded-3xl p-12 text-center hover:border-primary-200 hover:bg-primary-50/30 transition-all cursor-pointer group mb-8 relative">
-                    <div className="bg-slate-100 text-slate-400 group-hover:bg-primary-100 group-hover:text-primary-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
-                      <Camera className="h-8 w-8" />
+                  <div className="border-4 border-dashed border-slate-100 rounded-2xl md:rounded-3xl p-8 md:p-12 text-center hover:border-primary-200 hover:bg-primary-50/30 transition-all cursor-pointer group mb-6 relative">
+                    <div className="bg-slate-100 text-slate-400 group-hover:bg-primary-100 group-hover:text-primary-600 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors">
+                      <Camera className="h-6 w-6 md:h-8 md:w-8" />
                     </div>
-                    <p className="text-slate-900 font-bold mb-1 underline decoration-primary-300 decoration-2">Tap to take photo</p>
-                    <p className="text-slate-500 text-sm">Clear camera photo of prescription</p>
+                    <p className="text-slate-900 font-bold text-sm mb-1 underline decoration-primary-300 decoration-2">Tap to take photo</p>
+                    <p className="text-slate-500 text-[10px]">Must be clear and readable</p>
                     <input 
                       type="file" 
                       className="hidden" 
@@ -325,27 +325,23 @@ export default function CheckoutPage() {
                   </div>
 
                   {prescriptions.length > 0 && (
-                    <div className="mb-8 space-y-3">
-                      <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Selected Files:</p>
+                    <div className="mb-6 space-y-2">
                       {prescriptions.map((file, i) => (
-                        <div key={i} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                          <span className="text-sm text-slate-700 font-medium truncate">{file.name}</span>
-                          <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                        <div key={i} className="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                          <span className="text-xs text-slate-700 font-bold truncate">{file.name}</span>
+                          <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="flex gap-4">
-                    <Button variant="ghost" onClick={() => setStep(1)} className="h-14 rounded-2xl flex-1 border border-slate-200">Back</Button>
-                    <Button onClick={handleNextStep} disabled={isUploading} className="h-14 rounded-2xl flex-[2] font-bold text-lg group">
+                  <div className="flex gap-3">
+                    <Button variant="ghost" onClick={() => setStep(1)} className="h-12 rounded-xl flex-1 border border-slate-200 text-sm">Back</Button>
+                    <Button onClick={handleNextStep} disabled={isUploading} className="h-12 rounded-xl flex-[2] font-bold text-base group">
                       {isUploading ? (
-                        <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Uploading...</>
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Uploading...</>
                       ) : (
-                        <>
-                          Continue to Payment
-                          <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                        </>
+                        <>Continue to Payment <ChevronRight className="ml-2 h-4 w-4" /></>
                       )}
                     </Button>
                   </div>
@@ -354,30 +350,30 @@ export default function CheckoutPage() {
 
               {/* Step 3: Payment */}
               {step === 3 && (
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-                  <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
-                    <CreditCard className="h-6 w-6 text-primary-600" />
+                <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-sm border border-slate-200">
+                  <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                    <CreditCard className="h-5 w-5 md:h-6 md:w-6 text-primary-600" />
                     Payment Method
                   </h2>
                   
-                  <div className="space-y-4 mb-8">
+                  <div className="space-y-3 mb-6">
                     {[
-                      { id: 'COD', name: 'Cash on Delivery', description: 'Pay when your medicine arrives' },
-                      { id: 'Telebirr', name: 'Telebirr', description: 'Fast mobile payment provider' },
-                      { id: 'CBEBirr', name: 'CBE Birr', description: 'Commercial Bank of Ethiopia' }
+                      { id: 'COD', name: 'Cash on Delivery', description: 'Pay at your door' },
+                      { id: 'Telebirr', name: 'Telebirr', description: 'Fast mobile payment' },
+                      { id: 'CBEBirr', name: 'CBE Birr', description: 'Bank mobile payment' }
                     ].map((method) => (
                       <label 
                         key={method.id}
-                        className={`block p-5 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === method.id ? 'border-primary-500 bg-primary-50/50' : 'border-slate-100 hover:border-slate-200'}`}
+                        className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === method.id ? 'border-primary-500 bg-primary-50/50' : 'border-slate-100 hover:border-slate-200'}`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id ? 'border-primary-500 bg-primary-500' : 'border-slate-300'}`}>
-                              {paymentMethod === method.id && <div className="w-2 h-2 rounded-full bg-white" />}
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id ? 'border-primary-500 bg-primary-500' : 'border-slate-300'}`}>
+                              {paymentMethod === method.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                             </div>
                             <div>
-                              <p className="font-bold text-slate-900 leading-tight">{method.name}</p>
-                              <p className="text-sm text-slate-500">{method.description}</p>
+                              <p className="font-bold text-slate-900 text-sm leading-tight">{method.name}</p>
+                              <p className="text-[10px] text-slate-500">{method.description}</p>
                             </div>
                           </div>
                           <input 
@@ -392,15 +388,15 @@ export default function CheckoutPage() {
                     ))}
                   </div>
 
-                  <div className="flex gap-4">
-                    <Button variant="ghost" onClick={() => setStep(requiresPrescription ? 2 : 1)} className="h-14 rounded-2xl flex-1 border border-slate-200">Back</Button>
+                  <div className="flex gap-3">
+                    <Button variant="ghost" onClick={() => setStep(requiresPrescription ? 2 : 1)} className="h-12 rounded-xl flex-1 border border-slate-200 text-sm">Back</Button>
                     <Button 
                       onClick={handlePlaceOrder} 
                       disabled={isSubmitting}
-                      className="h-14 rounded-2xl flex-[2] font-black text-xl shadow-lg shadow-primary-200"
+                      className="h-12 rounded-xl flex-[2] font-black text-lg shadow-lg shadow-primary-200"
                     >
                       {isSubmitting ? (
-                        <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Processing...</>
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Processing...</>
                       ) : (
                         `Pay ${grandTotal.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}`
                       )}
@@ -411,48 +407,47 @@ export default function CheckoutPage() {
             </div>
 
             {/* Order Sidebar */}
-            <aside className="lg:w-96 space-y-6">
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-                <h3 className="font-black text-slate-900 mb-4 uppercase tracking-wider text-sm">Order Summary</h3>
-                <div className="max-h-64 overflow-y-auto mb-6 pr-2 -mr-2 space-y-4 custom-scrollbar">
+            <aside className="lg:w-96 space-y-4">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200">
+                <h3 className="font-black text-slate-900 mb-3 uppercase tracking-wider text-[10px] md:text-sm">Order Summary</h3>
+                <div className="max-h-48 md:max-h-64 overflow-y-auto mb-4 pr-1 -mr-1 space-y-3 custom-scrollbar">
                   {items.map((item) => (
-                    <div key={item.id} className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0 pr-4">
-                        <p className="font-bold text-slate-800 text-sm truncate">{item.name}</p>
-                        <p className="text-xs text-slate-500">Qty: {item.quantity} × {item.price.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</p>
+                    <div key={item.id} className="flex justify-between items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-800 text-[11px] md:text-sm truncate leading-tight">{item.name}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">{item.quantity} × {item.price.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</p>
                       </div>
-                      <span className="font-bold text-slate-900 text-sm">
+                      <span className="font-bold text-slate-900 text-[11px] md:text-sm shrink-0">
                         {(item.price * item.quantity).toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-3 pt-4 border-t border-slate-100">
-                  <div className="flex justify-between text-sm text-slate-500">
+                <div className="space-y-2 pt-3 border-t border-slate-100">
+                  <div className="flex justify-between text-[11px] md:text-sm text-slate-500 font-medium">
                     <span>Subtotal</span>
-                    <span className="font-medium text-slate-900 font-bold">{totalPrice.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
+                    <span className="text-slate-900 font-bold font-mono">{totalPrice.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-slate-500">
+                  <div className="flex justify-between text-[11px] md:text-sm text-slate-500 font-medium">
                     <span>Delivery</span>
-                    <span className="font-medium text-slate-900 font-bold">{deliveryFee.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
+                    <span className="text-slate-900 font-bold font-mono">{deliveryFee.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-slate-500">
+                  <div className="flex justify-between text-[11px] md:text-sm text-slate-500 font-medium">
                     <span>Tax (15%)</span>
-                    <span className="font-medium text-slate-900 font-bold">{tax.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
+                    <span className="text-slate-900 font-bold font-mono">{tax.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
                   </div>
-                  <div className="pt-3 border-t-2 border-slate-100 flex justify-between items-center text-primary-600 font-black text-xl">
-                    <span>Total</span>
-                    <span>{grandTotal.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
+                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-primary-600 font-black text-lg md:text-xl">
+                    <span className="text-sm md:text-base">Grand Total</span>
+                    <span className="font-mono">{grandTotal.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-primary-600 rounded-3xl p-8 text-white shadow-xl shadow-primary-200 relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary-500 rounded-full blur-3xl opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
-                 <h4 className="text-lg font-black mb-2 relative z-10">Need Help?</h4>
-                 <p className="text-primary-100 text-sm relative z-10 mb-6 font-medium">Our medical support team is available 24/7 if you have questions about your order.</p>
-                 <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white hover:text-primary-600 rounded-xl relative z-10 font-bold">
+              <div className="bg-primary-600 rounded-2xl md:rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-primary-200 relative overflow-hidden hidden md:block">
+                 <h4 className="text-lg font-black mb-1 relative z-10">Need Help?</h4>
+                 <p className="text-primary-100 text-xs relative z-10 mb-4 font-medium leading-relaxed">Our support team is available 24/7 for you.</p>
+                 <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white hover:text-primary-600 rounded-xl relative z-10 font-bold h-10 text-sm">
                    Call Support
                  </Button>
               </div>
@@ -462,6 +457,36 @@ export default function CheckoutPage() {
       </main>
 
       <Footer />
+      
+      {/* Mobile Sticky Action Bar */}
+      <div className="md:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-slate-100 p-4 shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.1)] z-40 pb-safe">
+          {step === 1 && (
+             <Button 
+               onClick={handleNextStep} 
+               className="w-full h-14 rounded-2xl font-bold text-lg shadow-lg shadow-primary-200"
+             >
+               Continue
+             </Button>
+          )}
+          {step === 2 && (
+             <Button 
+               onClick={handleNextStep} 
+               disabled={isUploading} 
+               className="w-full h-14 rounded-2xl font-bold text-lg shadow-lg shadow-primary-200"
+             >
+               {isUploading ? 'Uploading...' : 'Continue to Payment'}
+             </Button>
+          )}
+          {step === 3 && (
+             <Button 
+               onClick={handlePlaceOrder} 
+               disabled={isSubmitting}
+               className="w-full h-14 rounded-2xl font-black text-xl shadow-lg shadow-primary-200"
+             >
+               {isSubmitting ? 'Processing...' : `Pay ${grandTotal.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}`}
+             </Button>
+          )}
+      </div>
     </div>
   );
 }

@@ -13,14 +13,46 @@ import {
   Store,
   ArrowRight,
   ShieldCheck,
-  Navigation
+  Navigation,
+  Pill,
+  HeartPulse,
+  Thermometer,
+  Baby,
+  Activity,
+  Droplets,
+  Clock,
+  Star,
+  Tag
 } from 'lucide-react';
+
+const CATEGORIES = [
+  { name: 'Pain Relief', category: 'Pain Relief', icon: Pill, color: 'bg-red-50 text-red-500' },
+  { name: 'Cold & Flu', category: 'Cold & Flu', icon: Thermometer, color: 'bg-blue-50 text-blue-500' },
+  { name: 'Vitamins', category: 'Vitamins', icon: Activity, color: 'bg-orange-50 text-orange-500' },
+  { name: 'Heart Care', category: 'Heart Care', icon: HeartPulse, color: 'bg-rose-50 text-rose-500' },
+  { name: 'Baby Care', category: 'Baby Care', icon: Baby, color: 'bg-purple-50 text-purple-500' },
+  { name: 'Diabetes', category: 'Diabetes', icon: Droplets, color: 'bg-sky-50 text-sky-500' },
+  { name: 'Antibiotics', category: 'Antibiotics', icon: ShieldCheck, color: 'bg-green-50 text-green-500' },
+  { name: 'Personal Care', category: 'Personal Care', icon: Navigation, color: 'bg-pink-50 text-pink-500' },
+];
+
+const PROMOS = [
+  { id: 1, title: 'Summer Wellness', discount: '20% OFF', image: '/placeholder-promo-1.jpg', bg: 'bg-gradient-to-r from-orange-400 to-rose-400' },
+  { id: 2, title: 'Free Delivery', discount: 'On first order', image: '/placeholder-promo-2.jpg', bg: 'bg-gradient-to-r from-primary-500 to-indigo-500' },
+];
+
+const SPECIAL_OFFERS = [
+  { id: 1, name: 'Vitamin C 1000mg', desc: 'Immunity booster', price: 250, oldPrice: 350, image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop' },
+  { id: 2, name: 'Panadol Extra', desc: 'Fast pain relief', price: 120, oldPrice: 150, image: 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?w=400&h=400&fit=crop' },
+  { id: 3, name: 'Omega 3 Fish Oil', desc: 'Heart health', price: 850, oldPrice: 1200, image: 'https://images.unsplash.com/photo-1550572017-edb3f54d6fb2?w=400&h=400&fit=crop' },
+];
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [nearbyPharmacies, setNearbyPharmacies] = useState<any[]>([]);
+  const [specialOffers, setSpecialOffers] = useState<any[]>([]);
   const [isLocating, setIsLocating] = useState(false);
 
   const formatAddress = (addr: string) => {
@@ -32,37 +64,34 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const fetchNearby = async (lat: number, lng: number) => {
+    const fetchHomeData = async (lat?: number, lng?: number) => {
       try {
-        const res = await fetch(`/api/pharmacies?lat=${lat}&lng=${lng}&limit=6`);
-        if (res.ok) {
-          const data = await res.json();
-          setNearbyPharmacies(data);
-        }
+        const coords = lat && lng ? `?lat=${lat}&lng=${lng}` : '';
+        const [pharmaciesRes, offersRes] = await Promise.all([
+          fetch(`/api/pharmacies${coords}${coords ? '&limit=6' : '?limit=6'}`),
+          fetch(`/api/offers?status=ACTIVE`)
+        ]);
+
+        if (pharmaciesRes.ok) setNearbyPharmacies(await pharmaciesRes.json());
+        if (offersRes.ok) setSpecialOffers(await offersRes.json());
       } catch (err) {
-        console.error('Failed to fetch nearby pharmacies', err);
+        console.error('Failed to fetch home data', err);
+      } finally {
+        setIsLocating(false);
       }
     };
 
     if (user?.role === 'CUSTOMER' && (user as any).lastLat && (user as any).lastLng) {
-      fetchNearby((user as any).lastLat, (user as any).lastLng);
+      fetchHomeData((user as any).lastLat, (user as any).lastLng);
     } else if (!authLoading && !user && !isLocating) {
-      // Try to get browser location for guests
       setIsLocating(true);
-      if (navigator.geolocation) {
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            fetchNearby(pos.coords.latitude, pos.coords.longitude);
-            setIsLocating(false);
-          },
-          () => {
-            fetch('/api/pharmacies?limit=6').then(res => res.json()).then(data => setNearbyPharmacies(data));
-            setIsLocating(false);
-          }
+          (pos) => fetchHomeData(pos.coords.latitude, pos.coords.longitude),
+          () => fetchHomeData()
         );
       } else {
-        fetch('/api/pharmacies?limit=6').then(res => res.json()).then(data => setNearbyPharmacies(data));
-        setIsLocating(false);
+        fetchHomeData();
       }
     }
   }, [user, authLoading]);
@@ -78,117 +107,169 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow pb-safe">
         
-        {/* Search Hero Section */}
-        <section className="relative pt-12 pb-10 md:pt-24 md:pb-20 overflow-hidden bg-primary-600 px-4">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-700 to-primary-900 pointer-events-none"></div>
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-            <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white filter blur-[100px]"></div>
-            <div className="absolute top-1/2 right-0 w-64 h-64 rounded-full bg-secondary-400 filter blur-[80px]"></div>
-          </div>
+        {/* Mobile Search Section */}
+        <section className="bg-white px-4 py-3 sticky top-16 z-40 border-b border-slate-100 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+          <form onSubmit={handleSearch} className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-slate-400 group-focus-within:text-primary-600 transition-colors" />
+            </div>
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search medicines or pharmacies..." 
+              className="w-full pl-10 pr-4 py-3 bg-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:bg-white border border-transparent focus:border-primary-200 text-sm font-medium text-slate-800 transition-all"
+            />
+          </form>
+        </section>
 
-          <div className="container mx-auto max-w-4xl relative z-10 text-center">
-            {user ? (
-              <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 animate-in fade-in slide-in-from-bottom-4">
-                Hello, {user.name?.split(' ')[0] || 'there'} 👋
-              </h1>
-            ) : (
-              <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
-                What do you need today?
-              </h1>
-            )}
-            <p className="text-primary-100 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
-              Find medicines, vitamins, and pharmacies near you. Fast home delivery guaranteed.
-            </p>
-
-            {/* Global Search Bar */}
-            <form onSubmit={handleSearch} className="relative max-w-3xl mx-auto group">
-              <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                <Search className="h-6 w-6 text-slate-400 group-focus-within:text-primary-600 transition-colors" />
+        {/* Promotional Slider */}
+        <section className="mt-4 px-4 overflow-hidden">
+          <div className="flex gap-3 overflow-x-auto snap-x hide-scrollbar pb-2">
+            {PROMOS.map((promo) => (
+              <div key={promo.id} className={`relative flex-none w-[85vw] max-w-sm ${promo.bg} rounded-2xl p-5 text-white snap-center overflow-hidden shadow-sm`}>
+                <div className="relative z-10 w-2/3">
+                  <span className="inline-block bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase mb-2">Offer</span>
+                  <h3 className="text-xl font-bold leading-tight mb-1">{promo.title}</h3>
+                  <p className="text-sm font-medium opacity-90">{promo.discount}</p>
+                </div>
+                {/* Decorative circles to represent graphics as we don't have images guaranteed */}
+                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <div className="absolute top-4 right-4 w-16 h-16 bg-white/20 rounded-full blur-xl"></div>
               </div>
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for Panadol, Vitamin C, or Pharmacy name..." 
-                className="w-full pl-16 pr-36 py-5 bg-white rounded-3xl shadow-2xl focus:outline-none focus:ring-4 focus:ring-primary-500/30 text-lg font-medium text-slate-800 transition-all border-none"
-              />
-              <div className="absolute inset-y-2 right-2 flex items-center">
-                <Button type="submit" variant="primary" className="h-full px-8 rounded-2xl shadow-md text-base">
-                  Search
-                </Button>
-              </div>
-            </form>
+            ))}
           </div>
         </section>
 
-        {/* Nearby Pharmacies Section */}
-        <section className="py-10 md:py-20 container mx-auto px-4 max-w-6xl">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <Navigation className="h-6 w-6 text-primary-600" />
-                {user?.role === 'CUSTOMER' && (user as any).lastLat ? 'Pharmacies Near You' : 'Featured Pharmacies'}
-              </h2>
-              <p className="text-slate-500 mt-1">Get fast delivery from verified local partners.</p>
-            </div>
-            <Link href="/pharmacies" className="hidden md:flex items-center gap-2 text-primary-600 font-bold hover:text-primary-800 transition-colors">
-              View All <ArrowRight className="h-4 w-4" />
-            </Link>
+        {/* Categories Section */}
+        <section className="mt-6">
+          <div className="px-4 flex justify-between items-end mb-3">
+             <h2 className="text-lg font-bold text-slate-900">Browse by Category</h2>
+             <Link href="/products" className="text-xs font-bold text-primary-600">See all</Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto hide-scrollbar px-4 pb-2">
+            {CATEGORIES.map((cat, idx) => {
+              const Icon = cat.icon;
+              return (
+                <Link
+                  key={idx}
+                  href={`/products?category=${encodeURIComponent(cat.category)}`}
+                  className="flex flex-col items-center gap-2 flex-none w-16 active:scale-90 transition-transform"
+                >
+                  <div className={`w-14 h-14 rounded-full ${cat.color} flex items-center justify-center shadow-sm hover:shadow-md transition-shadow`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <span className="text-[10px] font-bold text-center text-slate-700 leading-tight h-8 line-clamp-2">{cat.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Special Offers Section */}
+        <section className="mt-4">
+          <div className="px-4 flex justify-between items-end mb-3 text-slate-900">
+             <h2 className="text-lg font-bold flex items-center gap-2"><Tag className="w-5 h-5 text-rose-500" /> Special Offers</h2>
+             <span className="text-xs font-bold text-primary-600">See all</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 pb-4">
+            {specialOffers.length > 0 ? (
+              specialOffers.map((offer) => (
+                <Link href={`/pharmacies/${offer.pharmacyId}`} key={offer.id} className="flex-none w-36 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col p-2.5 active:scale-95 transition-all">
+                  <div className="relative aspect-square w-full bg-slate-50 rounded-xl mb-2 flex items-center justify-center overflow-hidden">
+                    <img src={offer.imageUrl || offer.product?.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop'} alt={offer.title} className="w-full h-full object-cover" />
+                    <div className="absolute top-1 left-1 bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm">-{offer.discountPct}%</div>
+                  </div>
+                  <h3 className="text-xs font-black text-slate-900 line-clamp-1">{offer.title}</h3>
+                  <p className="text-[9px] text-slate-500 mb-1 line-clamp-1 font-bold">{offer.pharmacy?.name}</p>
+                  <div className="mt-auto flex items-center gap-1.5">
+                    <span className="text-xs font-black text-primary-600">{offer.product?.price ? (offer.product.price * (1 - offer.discountPct/100)).toFixed(0) : '0'} ETB</span>
+                    <span className="text-[9px] font-medium text-slate-400 line-through">{offer.product?.price}</span>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="flex-none w-36 h-44 bg-slate-50 rounded-2xl border border-slate-100 animate-pulse"></div>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Nearby Pharmacies Section (Vertical App List) */}
+        <section className="mt-4 px-4 pb-6">
+          <div className="flex justify-between items-end mb-4">
+             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Navigation className="h-5 w-5 text-primary-600" /> Nearby Pharmacies
+             </h2>
           </div>
 
-          {nearbyPharmacies.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-6">
-              {nearbyPharmacies.map((pharmacy) => (
-                <div key={pharmacy.id} className="bg-white rounded-xl md:rounded-2xl p-2 md:p-5 shadow-sm border border-slate-200 hover:shadow-md hover:border-primary-200 transition-all group flex flex-col h-full">
-                  <div className="flex items-start justify-between mb-1">
-                    <div className="h-8 w-8 md:h-12 md:w-12 bg-primary-50 rounded-lg md:rounded-xl flex items-center justify-center text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors shrink-0">
-                      <Store className="h-4 w-4 md:h-6 md:w-6" />
-                    </div>
-                    {pharmacy.distance && (
-                      <span className="bg-slate-100 text-slate-600 font-bold text-[8px] md:text-xs px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                        <MapPin className="h-2 w-2 hidden sm:block" /> {pharmacy.distance}km
-                      </span>
-                    )}
-                  </div>
+          <div className="flex flex-col gap-3">
+            {nearbyPharmacies.length > 0 ? (
+              nearbyPharmacies.map((pharmacy) => (
+                <Link href={`/pharmacies/${pharmacy.id}`} key={pharmacy.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 flex gap-4 items-center group active:scale-[0.98] transition-all">
                   
-                  <div className="flex-1 mt-0.5">
-                    <h3 className="text-xs md:text-base font-bold text-slate-900 mb-0.5 line-clamp-1">{pharmacy.name}</h3>
-                    <div className="flex items-center gap-1 text-[8px] md:text-xs text-emerald-600 font-medium mb-1 md:mb-2 text-nowrap">
-                      <ShieldCheck className="h-2.5 w-2.5" /> <span className="hidden sm:inline">MOH Verified</span><span className="sm:hidden">Verified</span>
-                    </div>
-                    {pharmacy.address && (
-                      <p className="text-slate-500 text-[8px] md:text-xs line-clamp-1 md:line-clamp-2 mb-2 flex items-start gap-1">
-                        <MapPin className="h-2.5 w-2.5 shrink-0 mt-0.5 opacity-50 hidden sm:block" /> <span className="truncate">{formatAddress(pharmacy.address)}</span>
-                      </p>
+                  {/* Pharmacy Logo/Image Thumbnail */}
+                  <div className="h-16 w-16 bg-slate-50 rounded-xl flex items-center justify-center text-primary-400 shrink-0 border border-slate-100 overflow-hidden">
+                    {pharmacy.logoUrl ? (
+                      <img src={pharmacy.logoUrl} alt={pharmacy.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Store className="h-8 w-8" />
                     )}
                   </div>
 
-                  <Link href={`/pharmacies/${pharmacy.id}`} className="mt-auto w-full">
-                    <Button variant="outline" size="sm" className="w-full rounded-md md:rounded-xl text-[9px] md:text-sm h-6 md:h-9 px-1 md:px-3 group-hover:bg-primary-50 group-hover:text-primary-700 transition-colors">
-                      Shop
-                    </Button>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="py-20 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <p className="text-slate-500 font-medium">Finding the nearest options for you...</p>
-            </div>
-          )}
-          
-          <div className="mt-8 text-center md:hidden">
-             <Link href="/pharmacies" className="inline-flex items-center gap-2 text-primary-600 font-bold hover:text-primary-800 transition-colors">
-              View All Pharmacies <ArrowRight className="h-4 w-4" />
-            </Link>
+                  {/* Pharmacy Details */}
+                  <div className="flex-1 min-w-0 py-0.5">
+                     <div className="flex justify-between items-start mb-0.5">
+                        <h3 className="text-sm font-bold text-slate-900 truncate pr-2">{pharmacy.name}</h3>
+                        <span className="bg-emerald-50 text-emerald-600 font-bold text-[8px] px-1.5 py-0.5 rounded shadow-sm shrink-0 uppercase tracking-wider">Open</span>
+                     </div>
+                     
+                     <p className="text-[10px] text-slate-500 truncate mb-1.5">
+                        {formatAddress(pharmacy.address)}
+                     </p>
+
+                     {/* Info Row: Rating, Time, Distance, Fee */}
+                     <div className="flex items-center gap-2 text-[9px] font-medium text-slate-600">
+                        <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-400 fill-amber-400" /> 4.8</span>
+                        <span className="text-slate-300">•</span>
+                        <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> 20-35 min</span>
+                        {pharmacy.distance && (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <span className="flex items-center gap-0.5 text-primary-600"><MapPin className="h-3 w-3" /> {pharmacy.distance}km</span>
+                          </>
+                        )}
+                     </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="py-12 bg-white rounded-2xl border border-dashed border-slate-200 text-center">
+                {isLocating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-3"></div>
+                    <p className="text-sm text-slate-500 font-medium">Locating pharmacies near you...</p>
+                  </>
+                ) : (
+                  <>
+                    <Store className="h-10 w-10 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm text-slate-500 font-medium">No nearby pharmacies found.</p>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
       </main>
-      <Footer />
+      
+      {/* Footer only visible on desktop now, since body has pb-16 for mobile */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }

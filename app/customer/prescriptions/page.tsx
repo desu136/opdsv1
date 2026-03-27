@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { Sidebar, customerSidebarItems } from '@/components/layout/Sidebar';
 import { 
   ClipboardList, 
   FileText, 
@@ -39,13 +38,10 @@ export default function CustomerPrescriptionsPage() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-safe">
       <Navbar />
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar items={customerSidebarItems} userRole="Customer" userName={user?.name || 'Customer'} />
-
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 text-slate-900">
+      <main className="flex-grow pt-6 pb-24 container mx-auto px-4 max-w-5xl text-slate-900">
           
           <div className="mb-8">
             <h1 className="text-2xl font-bold">My Prescriptions</h1>
@@ -108,8 +104,7 @@ export default function CustomerPrescriptionsPage() {
             </div>
           )}
 
-        </main>
-      </div>
+      </main>
     </div>
   );
 }

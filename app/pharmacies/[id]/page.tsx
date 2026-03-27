@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { ProductCard, ProductProps } from '@/components/ui/ProductCard';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { useCart } from '@/components/providers/CartProvider';
 import { 
   Store, 
   MapPin, 
@@ -16,7 +17,11 @@ import {
   Search, 
   Loader2,
   ArrowLeft,
-  Info
+  Info,
+  Star,
+  Clock,
+  ChevronRight,
+  Plus
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,6 +34,10 @@ export default function PharmacyStorefrontPage() {
   const [products, setProducts] = useState<ProductProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('All');
+  const { addItem, totalItems, totalPrice } = useCart();
+
+  const CATEGORIES = ['All', 'Pain Relief', 'Antibiotics', 'Vitamins', 'Personal Care', 'Baby', 'Heart'];
 
   const formatAddress = (addr: string) => {
     if (!addr) return 'Address not provided';
@@ -72,7 +81,8 @@ export default function PharmacyStorefrontPage() {
             distance: p.pharmacy.distance,
             requiresPrescription: p.requiresPrescription,
             inStock: p.stock > 0,
-            category: p.category
+            category: p.category,
+            offers: p.offers
           }));
           
           setProducts(mappedProducts);
@@ -137,107 +147,193 @@ export default function PharmacyStorefrontPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-slate-50 pb-safe">
       <Navbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow pb-24">
         {/* Banner / Header */}
-        <section className="bg-white border-b border-slate-200 pt-8 pb-12">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <Link href="/pharmacies" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-primary-600 mb-6 transition-colors">
-              <ArrowLeft className="h-4 w-4" /> Back to all pharmacies
-            </Link>
+        <section className="bg-white border-b border-slate-100">
+          {/* Cover Image */}
+          <div className="relative h-48 md:h-64 w-full bg-slate-200">
+             <img src={pharmacy.coverImageUrl || "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&h=400&fit=crop"} alt="Pharmacy Cover" className="w-full h-full object-cover" />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+             
+             {/* Back Button Overlay */}
+             <Link href="/" className="absolute top-4 left-4 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white z-10 transition-colors hover:bg-white/30">
+               <ArrowLeft className="h-5 w-5" />
+             </Link>
 
-            <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="h-24 w-24 md:h-32 md:w-32 bg-primary-50 rounded-3xl flex items-center justify-center text-primary-600 shrink-0 shadow-inner border border-primary-100">
-                <Store className="h-12 w-12 md:h-16 md:w-16" />
-              </div>
-              
-              <div className="flex-grow space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h1 className="text-3xl font-black text-slate-900">{pharmacy.name}</h1>
-                      <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-emerald-100 flex items-center gap-1">
-                        <ShieldCheck className="h-3 w-3" /> MOH Verified
-                      </span>
-                    </div>
-                    <p className="text-slate-500 flex items-center gap-1.5 font-medium">
-                      <MapPin className="h-4 w-4 text-primary-500" /> {formatAddress(pharmacy.address)} {pharmacy.distance && `• ${pharmacy.distance}km`}
-                    </p>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <a href={`tel:${pharmacy.phone}`}>
-                      <Button variant="outline" className="rounded-xl px-4 flex items-center gap-2 font-bold border-slate-200">
-                        <Phone className="h-4 w-4" /> Call
-                      </Button>
-                    </a>
-                  </div>
+             {/* Pharmacy Logo Overlay */}
+             <div className="absolute -bottom-6 left-4 h-20 w-20 md:h-24 md:w-24 bg-white rounded-2xl p-1 shadow-2xl border border-white overflow-hidden z-20">
+                <div className="w-full h-full rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden">
+                  {pharmacy.logoUrl ? (
+                    <img src={pharmacy.logoUrl} alt={pharmacy.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Store className="h-10 w-10 text-primary-400" />
+                  )}
                 </div>
+             </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-slate-50">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center"><Phone className="h-4 w-4 text-slate-400" /></div>
-                    <div className="text-xs">
-                       <p className="text-slate-400 font-bold uppercase tracking-tighter">Phone</p>
-                       <p className="text-slate-900 font-bold">{pharmacy.phone}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center"><Mail className="h-4 w-4 text-slate-400" /></div>
-                    <div className="text-xs">
-                       <p className="text-slate-400 font-bold uppercase tracking-tighter">Email</p>
-                       <p className="text-slate-900 font-bold">{pharmacy.email}</p>
-                    </div>
-                  </div>
+             {/* Pharmacy Info Overlay */}
+             <div className="absolute bottom-4 left-28 md:left-32 right-4 text-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-xl md:text-2xl font-black truncate">{pharmacy.name}</h1>
+                  <span className="shrink-0 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                    Open
+                  </span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Search & Products */}
-        <section className="py-12 container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Available Medicines</h2>
-            
-            <div className="w-full md:w-80 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary-600 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Search in this store..." 
-                className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-slate-800"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+                <p className="text-xs font-medium flex items-center gap-1 opacity-90 truncate italic">
+                  <MapPin className="h-3 w-3" /> {formatAddress(pharmacy.address)}
+                </p>
+             </div>
           </div>
 
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {filteredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white p-20 text-center rounded-[3rem] border border-dashed border-slate-200">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="h-8 w-8 text-slate-300" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">No medicines found</h3>
-              <p className="text-slate-500">We couldn't find any products in this pharmacy matching your search.</p>
-              {searchQuery && (
-                <Button variant="ghost" onClick={() => setSearchQuery('')} className="mt-4 text-primary-600">
-                  Clear Search
-                </Button>
-              )}
+          {/* Info Row */}
+          <div className="px-4 py-6 flex items-center justify-between text-sm border-b border-slate-50 mt-4 overflow-x-auto gap-4">
+             <div className="flex flex-col items-center gap-0.5 shrink-0">
+                <span className="font-bold flex items-center gap-1 text-slate-900"><Star className="h-4 w-4 text-amber-400 fill-amber-400" /> 4.8</span>
+                <span className="text-[10px] text-slate-500">100+ Reviews</span>
+             </div>
+             <div className="w-px h-8 bg-slate-200 shrink-0"></div>
+             <div className="flex flex-col items-center gap-0.5 shrink-0">
+                <span className="font-bold text-slate-900 flex items-center gap-1"><Clock className="h-4 w-4 text-primary-600" /> {pharmacy.workingHours || '8AM - 8PM'}</span>
+                <span className="text-[10px] text-slate-500">Operations</span>
+             </div>
+             <div className="w-px h-8 bg-slate-200 shrink-0"></div>
+             <div className="flex flex-col items-center gap-0.5 shrink-0">
+                <span className="font-bold text-slate-900">{pharmacy.distance !== undefined ? `${pharmacy.distance} km` : 'Near you'}</span>
+                <span className="text-[10px] text-slate-500">Distance</span>
+             </div>
+          </div>
+
+          {/* Description Section */}
+          {pharmacy.description && (
+            <div className="px-5 py-4 bg-white border-b border-slate-50">
+               <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">About Pharmcay</h3>
+               <p className="text-xs text-slate-600 leading-relaxed italic">{pharmacy.description}</p>
             </div>
           )}
+
+          {/* Category Tabs */}
+          <div className="px-4 py-2 overflow-x-auto hide-scrollbar flex gap-2 border-b border-slate-100 shadow-sm sticky top-16 z-30 bg-white">
+             {CATEGORIES.map(cat => (
+               <button 
+                 key={cat} 
+                 onClick={() => setActiveTab(cat)}
+                 className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all ${activeTab === cat ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+               >
+                 {cat}
+               </button>
+             ))}
+          </div>
         </section>
+
+        {/* Medicine List */}
+        <section className="pt-4 pb-8 container mx-auto px-4 max-w-3xl">
+          <div className="relative mb-6">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search in this pharmacy..." 
+              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all text-sm font-medium text-slate-800"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <h2 className="text-lg font-black text-slate-900 mb-4">{activeTab === 'All' ? 'Available Items' : activeTab}</h2>
+
+          <div className="flex flex-col gap-3">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map(product => {
+                const offer = (product as any).offers?.[0];
+                const discountedPrice = offer ? product.price * (1 - offer.discountPct/100) : null;
+
+                return (
+                  <div key={product.id} className="bg-white p-3.5 rounded-[1.5rem] flex gap-4 items-center border border-slate-100 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
+                    {offer && (
+                      <div className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl shadow-lg uppercase tracking-tighter">
+                        -{offer.discountPct}% OFF
+                      </div>
+                    )}
+                    
+                    {/* Product Image */}
+                    <Link href={`/products/${product.id}`} className="block h-20 w-20 bg-slate-50 rounded-2xl shrink-0 overflow-hidden relative border border-slate-50">
+                      {product.imageUrl ? (
+                        <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                          <Store className="h-8 w-8" />
+                        </div>
+                      )}
+                      {product.requiresPrescription && (
+                        <span className="absolute bottom-1 right-1 bg-red-50 text-red-600 text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm border border-red-100 flex items-center gap-0.5">
+                          <ShieldCheck className="h-2 w-2" /> Rx
+                        </span>
+                      )}
+                    </Link>
+
+                    {/* Product Details */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center py-1">
+                      <Link href={`/products/${product.id}`} className="block">
+                        <h3 className="text-sm font-black text-slate-900 line-clamp-1 mb-0.5 group-hover:text-primary-600 transition-colors">{product.name}</h3>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          {discountedPrice ? (
+                            <>
+                              <span className="text-sm font-black text-primary-600">{discountedPrice.toFixed(0)} ETB</span>
+                              <span className="text-[10px] font-medium text-slate-400 line-through">{product.price.toFixed(0)}</span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-black text-slate-900">{product.price.toFixed(0)} ETB</span>
+                          )}
+                        </div>
+                      </Link>
+                    </div>
+
+                    {/* Add Button */}
+                    <div className="shrink-0 pl-2">
+                      <Button 
+                        variant="primary" 
+                        size="sm" 
+                        onClick={() => addItem(product)}
+                        className="h-10 w-10 p-0 rounded-2xl shadow-lg shadow-primary-500/20 flex items-center justify-center shrink-0 active:scale-90 transition-all"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="bg-white p-12 text-center text-slate-500 text-sm font-medium">
+                No medicines found.
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Floating Cart (Only visible if items are in cart) */}
+        {totalItems > 0 && (
+          <div className="md:hidden fixed bottom-16 left-0 right-0 p-4 z-40 bg-gradient-to-t from-white via-white to-transparent pb-6 pt-10 pointer-events-none">
+            <Link href="/cart" className="w-full bg-primary-600 text-white rounded-2xl shadow-lg shadow-primary-500/30 p-4 flex items-center justify-between pointer-events-auto active:scale-[0.98] transition-all">
+               <div className="flex items-center gap-3">
+                 <div className="bg-primary-700 h-8 w-8 rounded-full flex items-center justify-center border border-primary-500 font-bold text-sm">
+                   {totalItems}
+                 </div>
+                 <span className="font-bold text-sm">View Cart</span>
+               </div>
+               <div className="flex items-center gap-2">
+                 <span className="font-black text-sm">{totalPrice.toFixed(2)} ETB</span>
+                 <ChevronRight className="h-5 w-5" />
+               </div>
+            </Link>
+          </div>
+        )}
       </main>
 
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }

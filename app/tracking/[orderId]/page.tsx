@@ -64,8 +64,8 @@ export default function TrackingPage({ params }: { params: Promise<{ orderId: st
         <main className="flex-grow flex flex-col items-center justify-center p-4 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h2 className="text-2xl font-bold text-slate-900 mb-2">{error || 'Unable to track order'}</h2>
-          <Link href="/customer/dashboard">
-            <Button variant="primary">Back to Dashboard</Button>
+          <Link href="/customer/orders">
+            <Button variant="primary">Back to Orders</Button>
           </Link>
         </main>
         <Footer />
@@ -118,14 +118,14 @@ export default function TrackingPage({ params }: { params: Promise<{ orderId: st
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+      <main className="flex-grow container mx-auto px-4 py-8 pb-32 max-w-5xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 mb-1">Track Order #{order.id.slice(0, 8)}</h1>
             <p className="text-slate-500">Order Status: <span className="font-semibold text-primary-600">{order.status}</span></p>
           </div>
-          <Link href="/customer/dashboard">
-             <Button variant="outline">Back to Dashboard</Button>
+          <Link href="/customer/orders" className="hidden md:block">
+             <Button variant="outline">Back to Orders</Button>
           </Link>
         </div>
 

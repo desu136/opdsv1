@@ -4,9 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Pill, Mail, Lock, ArrowRight, CheckCircle2, AlertCircle, Loader2, Phone, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-
 import { useAuth } from '@/components/providers/AuthProvider';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   const [loginMode, setLoginMode] = useState<'customer' | 'staff'>('customer');
@@ -27,6 +26,17 @@ export default function LoginPage() {
   
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Read ?mode=customer|staff from URL and set the login mode on mount
+  useEffect(() => {
+    const modeParam = searchParams.get('mode');
+    if (modeParam === 'staff') {
+      setLoginMode('staff');
+    } else {
+      setLoginMode('customer'); // default to customer OTP
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
