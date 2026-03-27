@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { Pill, Mail, Lock, ArrowRight, CheckCircle2, AlertCircle, Loader2, Phone, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [loginMode, setLoginMode] = useState<'customer' | 'staff'>('customer');
   
   // Staff State
@@ -359,5 +359,17 @@ export default function LoginPage() {
          </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }
