@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Heart, Store, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Heart, Store, ShieldCheck, Star } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/components/providers/CartProvider';
 
@@ -19,6 +19,8 @@ export interface ProductProps {
   requiresPrescription: boolean;
   inStock: boolean;
   category: string;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 export const ProductCard = ({ product }: { product: ProductProps }) => {
@@ -84,9 +86,18 @@ export const ProductCard = ({ product }: { product: ProductProps }) => {
         </Link>
         
         {product.genericName && (
-          <p className="text-[8px] md:text-sm text-slate-500 italic mb-1 md:mb-3 text-left line-clamp-1 opacity-80">
+          <p className="text-[8px] md:text-sm text-slate-500 italic mb-1 md:mb-1 text-left line-clamp-1 opacity-80">
             {product.genericName}
           </p>
+        )}
+
+        {/* Rating Section */}
+        {product.averageRating !== undefined && product.averageRating > 0 && (
+          <div className="flex items-center gap-1 mb-1 md:mb-2 text-left">
+            <Star className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 text-amber-400 fill-amber-400" />
+            <span className="text-[9px] md:text-xs font-bold text-slate-700">{product.averageRating.toFixed(1)}</span>
+            <span className="text-[8px] md:text-[10px] text-slate-400">({product.reviewCount})</span>
+          </div>
         )}
 
         {/* Price and Add Button Section */}

@@ -43,16 +43,18 @@ function MedicinesListing() {
           const data = await res.json();
           const mapped = data.map((p: any) => ({
             id: p.id,
-            name: p.name,
-            genericName: p.genericName,
+            name: p.medicine?.name || 'Unknown',
+            genericName: p.medicine?.genericName,
             price: p.price,
-            imageUrl: p.imageUrl,
-            pharmacyId: p.pharmacy.id,
-            pharmacyName: p.pharmacy.name,
-            distance: p.pharmacy.distance,
-            requiresPrescription: p.requiresPrescription,
+            imageUrl: p.medicine?.imageUrl,
+            pharmacyId: p.pharmacy?.id,
+            pharmacyName: p.pharmacy?.name,
+            distance: p.pharmacy?.distance,
+            requiresPrescription: p.medicine?.requiresPrescription,
             inStock: p.stock > 0,
-            category: p.category
+            category: p.medicine?.category,
+            averageRating: p.medicine?.averageRating,
+            reviewCount: p.medicine?.reviewCount
           }));
           setProducts(mapped);
         }

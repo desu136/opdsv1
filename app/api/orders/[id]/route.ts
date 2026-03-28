@@ -22,8 +22,8 @@ export async function GET(
       where: { id },
       include: {
         customer: { select: { name: true, phone: true } },
-        pharmacy: { select: { name: true, phone: true, id: true } },
-        items: { include: { product: { select: { name: true, requiresPrescription: true } } } },
+        pharmacy: { select: { name: true, phone: true, id: true, ownerId: true } },
+        items: { include: { product: { include: { medicine: { select: { name: true, requiresPrescription: true } } } } } },
         prescription: true,
         delivery: { include: { agent: { select: { name: true, phone: true } } } }
       }
@@ -65,7 +65,14 @@ export async function PUT(
     const body = await request.json();
     const { status, prescriptionStatus } = body;
 
-    const order = await prisma.order.findUnique({ where: { id }, include: { prescription: true }});
+    const order = await prisma.order.findUnique({ 
+      where: { id }, 
+      include: { 
+        prescription: true,
+        items: true,
+        pharmacy: { select: { ownerId: true } }
+      }
+    });
     if (!order) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     let updatedOrder;
@@ -107,6 +114,34 @@ export async function PUT(
              data: { status: 'DELIVERED', deliveryTime: new Date() }
           });
           updatedOrder = await prisma.order.update({ where: { id }, data: { status: 'COMPLETED' }});
+       }
+    } else if (payload.role === 'CUSTOMER') {
+       if (order.customerId !== payload.id) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+       }
+       if (status === 'CANCELLED' && order.status === 'PENDING') {
+          updatedOrder = await prisma.order.update({ where: { id }, data: { status: 'CANCELLED' }});
+          
+          // Re-add stock
+          for (const item of order.items) {
+             await prisma.product.update({
+                where: { id: item.productId },
+                data: { stock: { increment: item.quantity } }
+             });
+          }
+
+          // Alert Pharmacist
+          await sendNotification({
+             userId: order.pharmacy.ownerId || '', // Need to ensure ownerId is fetched in findUnique, or fetch pharmacy. Wait, ownerId is not fetched currently. Let's fetch it lazily here.
+             title: 'Order Cancelled',
+             message: `Order #${id.slice(0, 8)} was cancelled by the customer.`,
+             type: 'ORDER'
+          });
+
+       } else if (status === 'RETURN_REQUESTED' && order.status === 'COMPLETED') {
+          updatedOrder = await prisma.order.update({ where: { id }, data: { status: 'RETURN_REQUESTED' as any }});
+       } else {
+          return NextResponse.json({ error: 'Invalid customer action' }, { status: 400 });
        }
     } else {
        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

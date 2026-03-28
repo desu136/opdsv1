@@ -3,44 +3,43 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { pharmacySidebarItems } from '@/components/layout/Sidebar';
-import { useAuth } from '@/components/providers/AuthProvider';
-import { 
-  Plus, 
-  Tag, 
-  Calendar, 
-  Trash2, 
-  Edit2, 
-  Loader2, 
-  CheckCircle2, 
-  AlertCircle,
-  X,
-  Upload,
-  Search,
-  ChevronRight,
-  ImageIcon
-} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Tag, Plus, Upload, X, Loader2, Calendar, Pill, CheckCircle2, Clock, Trash, Store, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 
-export default function SpecialOffersPage() {
+export default function PromotionsPage() {
   const { user } = useAuth();
-  const [offers, setOffers] = useState<any[]>([]);
+  const [promotions, setPromotions] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingOffer, setEditingOffer] = useState<any>(null);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form State
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState('GENERAL');
+  const [productId, setProductId] = useState('');
+  const [discountPct, setDiscountPct] = useState(10);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
+  useEffect(() => {
+    if (user && user.role === 'PHARMACIST') {
+      fetchData();
+    }
+  }, [user]);
+
   const fetchData = async () => {
-    if (!user?.pharmacy?.id) return;
+    setIsLoading(true);
     try {
-      const [offersRes, invRes] = await Promise.all([
-        fetch(`/api/offers?pharmacyId=${user.pharmacy.id}`),
-        fetch(`/api/inventory?pharmacyId=${user.pharmacy.id}`)
+      const [promosRes, invRes] = await Promise.all([
+        fetch('/api/pharmacy/offers'),
+        fetch('/api/inventory')
       ]);
-      
-      if (offersRes.ok) setOffers(await offersRes.json());
+      if (promosRes.ok) setPromotions(await promosRes.json());
       if (invRes.ok) setInventory(await invRes.json());
     } catch (err) {
       console.error(err);
@@ -49,250 +48,278 @@ export default function SpecialOffersPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [user]);
-
-  const showMessage = (type: 'success' | 'error', text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSaving(true);
-    const formData = new FormData(e.currentTarget);
-    const body = {
-      title: formData.get('title'),
-      productId: formData.get('productId'),
-      discountPct: formData.get('discountPct'),
-      startDate: formData.get('startDate'),
-      endDate: formData.get('endDate'),
-      imageUrl: formData.get('imageUrl') || editingOffer?.imageUrl || ''
-    };
-
-    try {
-      const url = editingOffer ? `/api/offers/${editingOffer.id}` : '/api/offers';
-      const method = editingOffer ? 'PUT' : 'POST';
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (res.ok) {
-        showMessage('success', `Offer ${editingOffer ? 'updated' : 'created'} successfully`);
-        setIsModalOpen(false);
-        setEditingOffer(null);
-        fetchData();
-      } else {
-        const err = await res.json();
-        showMessage('error', err.message || 'Operation failed');
-      }
-    } catch (err) {
-      showMessage('error', 'Network error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this offer?')) return;
-    try {
-      const res = await fetch(`/api/offers/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        showMessage('success', 'Offer deleted');
-        fetchData();
-      }
-    } catch (err) {
-      showMessage('error', 'Delete failed');
-    }
-  };
-
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    
     setIsUploading(true);
+    setImageFile(file);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('folder', 'offers');
-
+    
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
       const data = await res.json();
-      if (data.url) {
-        if (editingOffer) {
-          setEditingOffer({ ...editingOffer, imageUrl: data.url });
-        } else {
-          // Temporarily store in a state if adding new? 
-          // Actually let's just use a hidden input or state
-          (document.getElementById('offer-imageUrl') as HTMLInputElement).value = data.url;
-          showMessage('success', 'Image uploaded');
-        }
+      if (res.ok && data.url) {
+        setImageUrl(data.url);
+      } else if (res.ok && data.secure_url) {
+        setImageUrl(data.secure_url);
       }
     } catch (err) {
-      showMessage('error', 'Upload failed');
+      console.error('Image upload failed', err);
     } finally {
       setIsUploading(false);
     }
   };
 
-  const isOfferActive = (endDate: string) => {
-    return new Date(endDate) > new Date();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const res = await fetch('/api/pharmacy/offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          type,
+          productId: type === 'MEDICINE' ? productId : null,
+          discountPct: Number(discountPct),
+          startDate,
+          endDate,
+          imageUrl: imageUrl || 'https://images.unsplash.com/photo-1550572017-edb3f54d6fb2?w=800&q=80', // Fallback
+        })
+      });
+
+      if (res.ok) {
+        setIsModalOpen(false);
+        resetForm();
+        fetchData();
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Failed to create promotion');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  return (
-    <DashboardLayout items={pharmacySidebarItems} title="Special Offers">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900">Manage Offers</h1>
-          <p className="text-slate-500 text-sm">Boost your sales with limited-time discounts.</p>
+  const resetForm = () => {
+    setTitle('');
+    setType('GENERAL');
+    setProductId('');
+    setDiscountPct(10);
+    setStartDate('');
+    setEndDate('');
+    setImageFile(null);
+    setImageUrl('');
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this promotion?')) return;
+    try {
+      const res = await fetch(`/api/pharmacy/offers/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const toggleStatus = async (id: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+      const res = await fetch(`/api/pharmacy/offers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getStatusDisplay = (offer: any) => {
+    const now = new Date();
+    const start = new Date(offer.startDate);
+    const end = new Date(offer.endDate);
+
+    if (offer.status === 'INACTIVE') {
+      return <span className="px-2 py-1 text-xs font-bold bg-slate-100 text-slate-500 rounded-lg flex items-center gap-1"><X className="h-3 w-3"/> Inactive</span>;
+    }
+    if (now > end) {
+      return <span className="px-2 py-1 text-xs font-bold bg-red-50 text-red-600 rounded-lg flex items-center gap-1"><Clock className="h-3 w-3"/> Expired</span>;
+    }
+    if (now < start) {
+      return <span className="px-2 py-1 text-xs font-bold bg-amber-50 text-amber-600 rounded-lg flex items-center gap-1"><Calendar className="h-3 w-3"/> Scheduled</span>;
+    }
+    return <span className="px-2 py-1 text-xs font-bold bg-green-50 text-green-600 rounded-lg flex items-center gap-1"><CheckCircle2 className="h-3 w-3"/> Active</span>;
+  };
+
+  if (!user || isLoading) {
+    return (
+      <DashboardLayout items={pharmacySidebarItems} title="Promotions">
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
         </div>
-        <Button 
-          onClick={() => { setEditingOffer(null); setIsModalOpen(true); }} 
-          className="rounded-2xl shadow-lg shadow-primary-500/20 px-6"
-        >
-          <Plus className="h-4 w-4 mr-2" /> Add New Offer
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout items={pharmacySidebarItems} title="Promotions Management">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Active Promotions</h1>
+          <p className="text-slate-500 text-sm mt-1">Manage marketing banners and discounts for your pharmacy.</p>
+        </div>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)} className="rounded-xl px-5 h-11 shrink-0">
+          <Plus className="h-5 w-5 mr-2" />
+          Create Promotion
         </Button>
       </div>
 
-      {message.text && (
-        <div className={`mb-6 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 ${
-          message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
-        }`}>
-          {message.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-          <span className="font-medium text-sm text-slate-900">{message.text}</span>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="flex justify-center p-24">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
-        </div>
-      ) : offers.length === 0 ? (
-        <div className="bg-white rounded-[2.5rem] p-16 text-center border border-slate-100 shadow-sm">
-          <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 text-slate-300">
-            <Tag className="h-10 w-10" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">No active offers</h3>
-          <p className="text-slate-500 text-sm max-w-xs mx-auto mt-2">Create your first special offer to attract more customers to your pharmacy.</p>
-          <Button variant="ghost" className="mt-6 text-primary-600 font-bold" onClick={() => setIsModalOpen(true)}>Create Offer Now</Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {offers.map((offer) => {
-            const active = isOfferActive(offer.endDate);
-            return (
-              <div key={offer.id} className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group relative overlow-hidden">
-                <div className={`absolute top-4 right-4 z-10 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                  {active ? 'Active' : 'Expired'}
-                </div>
-                
-                <div className="aspect-video w-full bg-slate-50 rounded-2xl mb-4 overflow-hidden relative border border-slate-100">
-                  {offer.imageUrl ? (
-                    <img src={offer.imageUrl} alt={offer.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-200">
-                      <ImageIcon className="h-12 w-12" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                    <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-lg">-{offer.discountPct}% OFF</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="font-black text-slate-900 text-lg leading-tight group-hover:text-primary-600 transition-colors">{offer.title}</h3>
-                  
-                  <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-tight">
-                    <Tag className="h-3 w-3" />
-                    <span className="truncate">{offer.product?.name}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold">
-                       <Calendar className="h-3 w-3" />
-                       {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50" onClick={() => { setEditingOffer(offer); setIsModalOpen(true); }}><Edit2 className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => handleDelete(offer.id)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {promotions.map((offer) => (
+          <div key={offer.id} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col group relative">
+            <div className="h-40 w-full relative overflow-hidden bg-slate-100">
+              <img src={offer.imageUrl || 'https://images.unsplash.com/photo-1550572017-edb3f54d6fb2?w=800'} alt={offer.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary-700 tabular-nums">
+                {offer.discountPct}% OFF
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div>
-                <h2 className="text-xl font-black text-slate-900">{editingOffer ? 'Edit Offer' : 'Create New Offer'}</h2>
-                <p className="text-xs text-slate-500 font-medium">Configure your medicine promotion</p>
+              <div className="absolute top-3 right-3">
+                {getStatusDisplay(offer)}
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="h-10 w-10 flex items-center justify-center hover:bg-slate-200 rounded-full transition-colors"><X className="h-5 w-5 text-slate-400" /></button>
+            </div>
+            
+            <div className="p-5 flex flex-col flex-1">
+              <h3 className="font-bold text-slate-900 text-lg leading-tight mb-2">{offer.title}</h3>
+              {offer.productId && offer.product ? (
+                <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 mb-4">
+                  <Pill className="h-4 w-4" /> {offer.product.name}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 mb-4">
+                  <Store className="h-4 w-4" /> Store-wide Promotion
+                </div>
+              )}
+              
+              <div className="flex items-center justify-between text-xs text-slate-400 mt-auto pt-4 border-t border-slate-100">
+                <span>{new Date(offer.startDate).toLocaleDateString()}</span>
+                <ArrowRight className="h-3 w-3" />
+                <span>{new Date(offer.endDate).toLocaleDateString()}</span>
+              </div>
             </div>
 
-            <form className="p-8 space-y-6" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Offer Title</label>
-                  <input name="title" required defaultValue={editingOffer?.title} type="text" className="w-full px-4 py-4 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900" placeholder="e.g. Immunity Booster Week" />
-                </div>
-                
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Select Product</label>
-                  <select name="productId" required defaultValue={editingOffer?.productId} className="w-full px-4 py-4 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900 appearance-none cursor-pointer">
-                    <option value="" disabled>Select from inventory...</option>
-                    {inventory.map(item => <option key={item.id} value={item.id}>{item.name} (-{item.price} ETB)</option>)}
-                  </select>
-                </div>
+            {/* Hover Actions Layer */}
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+               <button onClick={() => toggleStatus(offer.id, offer.status)} className="bg-white text-slate-900 px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-slate-50 transition-colors">
+                 {offer.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+               </button>
+               <button onClick={() => handleDelete(offer.id)} className="bg-red-500 text-white p-2 rounded-xl shadow-lg hover:bg-red-600 transition-colors">
+                 <Trash className="h-5 w-5" />
+               </button>
+            </div>
+          </div>
+        ))}
+        {promotions.length === 0 && (
+          <div className="col-span-1 md:col-span-2 lg:col-span-3 py-20 text-center bg-slate-50 border border-slate-200 border-dashed rounded-3xl">
+            <Tag className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500 font-medium">No promotions found.</p>
+            <Button variant="outline" onClick={() => setIsModalOpen(true)} className="mt-4 rounded-xl">Create your first promotion</Button>
+          </div>
+        )}
+      </div>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Discount (%)</label>
-                  <div className="relative">
-                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                    <input name="discountPct" required defaultValue={editingOffer?.discountPct} type="number" step="0.1" max="99" className="w-full pl-10 pr-4 py-4 bg-slate-50 border-transparent rounded-2xl outline-none font-black text-rose-600" placeholder="20" />
-                  </div>
-                </div>
+      {/* CREATE MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl relative my-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-900">Create Promotion</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Banner Image</label>
-                  <div className="relative">
-                    <input id="offer-imageUrl" name="imageUrl" type="hidden" defaultValue={editingOffer?.imageUrl} />
-                    <Button variant="ghost" type="button" className="w-full h-14 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 hover:bg-primary-50 group transition-all relative">
-                      {isUploading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <ImageIcon className="h-5 w-5 mr-2 group-hover:text-primary-600" />}
-                      <span className="text-xs font-bold">{isUploading ? 'Uploading...' : 'Upload Image'}</span>
-                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={handleImageUpload} />
-                    </Button>
-                  </div>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+               {/* Image Upload Area */}
+               <div className="relative group cursor-pointer" onClick={() => document.getElementById('promo-image-upload')?.click()}>
+                 <div className={`w-full h-40 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors ${imageUrl ? 'border-primary-500 bg-white' : 'border-slate-300 bg-slate-50 hover:border-primary-400 hover:bg-primary-50/50'}`}>
+                   {imageUrl ? (
+                     <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                   ) : (
+                     <div className="text-center p-4 flex flex-col items-center">
+                       {isUploading ? <Loader2 className="h-8 w-8 text-primary-500 animate-spin mb-2" /> : <Upload className="h-8 w-8 text-slate-400 mb-2 group-hover:text-primary-500 group-hover:-translate-y-1 transition-all" />}
+                       <p className="text-sm font-bold text-slate-600 group-hover:text-primary-700">Upload Banner Image</p>
+                       <p className="text-xs text-slate-400 mt-1">16:9 aspect ratio recommended</p>
+                     </div>
+                   )}
+                   <input type="file" id="promo-image-upload" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                 </div>
+               </div>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Start Date</label>
-                  <input name="startDate" required defaultValue={editingOffer ? new Date(editingOffer.startDate).toISOString().split('T')[0] : ''} type="date" className="w-full px-4 py-4 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900" />
-                </div>
+               <div className="space-y-1">
+                 <label className="text-sm font-semibold text-slate-700">Promotion Title</label>
+                 <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Summer Wellness Discount" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500" />
+               </div>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">End Date</label>
-                  <input name="endDate" required defaultValue={editingOffer ? new Date(editingOffer.endDate).toISOString().split('T')[0] : ''} type="date" className="w-full px-4 py-4 bg-slate-50 border-transparent rounded-2xl outline-none font-bold text-slate-900" />
-                </div>
-              </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-1">
+                   <label className="text-sm font-semibold text-slate-700">Type</label>
+                   <select value={type} onChange={e => setType(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none font-medium">
+                     <option value="GENERAL">General Pharmacy</option>
+                     <option value="MEDICINE">Specific Medicine</option>
+                   </select>
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-sm font-semibold text-slate-700">Discount Percentage</label>
+                   <div className="relative">
+                     <input type="number" min="1" max="100" required value={discountPct} onChange={e => setDiscountPct(Number(e.target.value))} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10" />
+                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
+                   </div>
+                 </div>
+               </div>
 
-              <div className="pt-6 flex gap-4">
-                <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)} className="flex-1 rounded-2xl font-bold h-14">Cancel</Button>
-                <Button variant="primary" type="submit" disabled={isSaving} className="flex-1 rounded-2xl font-black h-14 shadow-xl shadow-primary-200 uppercase tracking-widest">
-                  {isSaving ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : editingOffer ? 'Update Offer' : 'Launch Offer'}
-                </Button>
-              </div>
+               {type === 'MEDICINE' && (
+                 <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                   <label className="text-sm font-semibold text-slate-700">Select Medicine</label>
+                   <select required value={productId} onChange={e => setProductId(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none font-medium">
+                     <option value="">-- Choose a Product --</option>
+                     {inventory.map(item => (
+                       <option key={item.id} value={item.id}>{item.name} (${item.price})</option>
+                     ))}
+                   </select>
+                 </div>
+               )}
+
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-1">
+                   <label className="text-sm font-semibold text-slate-700">Start Date</label>
+                   <input type="date" required value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-sm font-semibold text-slate-700">End Date</label>
+                   <input type="date" required value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                 </div>
+               </div>
+
+               <div className="pt-4 mt-6 border-t border-slate-100 flex gap-3 pb-8">
+                 <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1 rounded-xl h-12">Cancel</Button>
+                 <Button type="submit" variant="primary" className="flex-1 rounded-xl h-12" disabled={isSubmitting || isUploading}>
+                   {isSubmitting ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Saving...</> : 'Publish Promotion'}
+                 </Button>
+               </div>
             </form>
           </div>
         </div>

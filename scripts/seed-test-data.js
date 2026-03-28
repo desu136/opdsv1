@@ -65,18 +65,63 @@ async function main() {
       console.log('Created customer:', customer.email);
     }
 
+    // Create a generic Medicine in the Global Catalog first
+    let medicine = await prisma.medicine.findFirst({ where: { name: 'Amoxicillin 500mg' } });
+    if (!medicine) {
+      medicine = await prisma.medicine.create({
+        data: {
+          name: 'Amoxicillin 500mg',
+          genericName: 'Amoxicillin',
+          category: 'Antibiotics',
+          requiresPrescription: true,
+          status: 'APPROVED',
+          description: 'Used to treat bacterial infections.',
+          dosage: '500mg every 8 hours',
+          sideEffects: 'Nausea, vomiting, diarrhea',
+          imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&h=500&fit=crop'
+        }
+      });
+      console.log('Created medicine:', medicine.name);
+    }
+
+    let medicineParacetamol = await prisma.medicine.findFirst({ where: { name: 'Paracetamol 500mg' } });
+    if (!medicineParacetamol) {
+      medicineParacetamol = await prisma.medicine.create({
+        data: {
+          name: 'Paracetamol 500mg',
+          genericName: 'Acetaminophen',
+          category: 'Pain Relief',
+          requiresPrescription: false,
+          status: 'APPROVED',
+          description: 'Used to treat mild to moderate pain.',
+          dosage: '500mg every 4-6 hours',
+          sideEffects: 'None common',
+          imageUrl: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=500&h=500&fit=crop'
+        }
+      });
+      console.log('Created medicine:', medicineParacetamol.name);
+    }
+
     // Create a test product for this pharmacy
     const product = await prisma.product.create({
       data: {
-        name: 'Test Medicine',
-        category: 'General',
-        price: 100,
+        medicineId: medicine.id,
+        price: 150,
         stock: 50,
-        pharmacyId: pharmacy.id,
-        requiresPrescription: false
+        pharmacyId: pharmacy.id
       }
     });
-    console.log('Created product:', product.name);
+    
+    await prisma.product.create({
+      data: {
+        medicineId: medicineParacetamol.id,
+        price: 30,
+        stock: 200,
+        pharmacyId: pharmacy.id
+      }
+    });
+
+    console.log('Created products for pharmacy');
 
     // Create a test order
     const order = await prisma.order.create({

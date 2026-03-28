@@ -2,9 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
+
+const TrackingMap = dynamic(() => import('@/components/ui/TrackingMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center rounded-3xl border border-slate-200">
+      <span className="text-slate-400 font-medium text-sm flex items-center gap-2">
+        Initializing Live Map...
+      </span>
+    </div>
+  )
+});
 import { 
   Package, 
   MapPin, 
@@ -24,6 +36,30 @@ export default function TrackingPage({ params }: { params: Promise<{ orderId: st
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+
+  const handleAction = async (newStatus: string) => {
+    if (!confirm(`Are you sure you want to ${newStatus === 'CANCELLED' ? 'cancel' : 'return'} this order?`)) return;
+    setIsProcessingAction(true);
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setOrder(await res.json());
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Action failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -134,49 +170,25 @@ export default function TrackingPage({ params }: { params: Promise<{ orderId: st
           {/* Main Tracking / Map Area */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Live Map Placeholder */}
+            {/* Live Interactive Tracking Map */}
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden isolate relative h-[400px]">
-              {/* Map abstract background */}
-              <div className="absolute inset-0 bg-[#e5e3df] z-0 opacity-50">
-                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #000 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
-                
-                {/* Simulated route line */}
-                 <svg className="absolute w-full h-full" style={{ zIndex: 1 }}>
-                   <path d="M 100 300 Q 250 150 400 200 T 700 100" fill="none" stroke="#2563eb" strokeWidth="6" strokeDasharray="10, 10" className="opacity-60 animate-pulse" />
-                 </svg>
-
-                 {/* Pharmacy Marker */}
-                 <div className="absolute top-[280px] left-[80px] transform -translate-x-1/2 -translate-y-full z-10 flex flex-col items-center">
-                    <div className="bg-white px-3 py-1 rounded-lg shadow-md mb-2 text-xs font-bold text-slate-900 border border-slate-200">
-                      {order.pharmacy.name}
-                    </div>
-                    <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                      <Store className="h-4 w-4 text-white" />
-                    </div>
-                 </div>
-
-                 {/* Agent Marker (Current Location) */}
-                 <div className="absolute top-[180px] left-[380px] transform -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center">
-                    <div className="bg-primary-600 px-3 py-1 rounded-lg shadow-md mb-2 text-xs font-bold text-white relative animate-bounce">
-                      Agent Location
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary-600 rotate-45"></div>
-                    </div>
-                    <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center border-4 border-white shadow-xl isolate">
-                       <span className="absolute w-full h-full rounded-full bg-primary-400 animate-ping -z-10 opacity-75"></span>
-                       <Navigation className="h-5 w-5 text-white transform -rotate-45" />
-                    </div>
-                 </div>
-
-                 {/* Customer Location Marker */}
-                 <div className="absolute top-[80px] left-[680px] transform -translate-x-1/2 -translate-y-full z-10 flex flex-col items-center">
-                    <div className="bg-white px-3 py-1 rounded-lg shadow-md mb-2 text-xs font-bold text-slate-900 border border-slate-200">
-                      Delivery Address
-                    </div>
-                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                      <MapPin className="h-4 w-4 text-white" />
-                    </div>
-                 </div>
-              </div>
+               <TrackingMap 
+                  pharmacyLoc={{
+                    lat: order.pharmacy.lat || 9.0300, 
+                    lng: order.pharmacy.lng || 38.7400,
+                    name: order.pharmacy.name
+                  }}
+                  customerLoc={{
+                    lat: order.delivery?.dropoffLat || 9.0200, 
+                    lng: order.delivery?.dropoffLng || 38.7500,
+                    name: 'Delivery Address'
+                  }}
+                  agentLoc={order.delivery?.agentId ? {
+                    lat: order.delivery?.currentLat || 9.0250, 
+                    lng: order.delivery?.currentLng || 38.7450,
+                    name: order.delivery?.agent?.name
+                  } : null}
+               />
             </div>
 
             {/* Tracking Timeline */}
@@ -281,6 +293,36 @@ export default function TrackingPage({ params }: { params: Promise<{ orderId: st
                   {order.totalAmount.toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}
                 </span>
               </div>
+
+              {order.status === 'PENDING' && (
+                <Button 
+                  variant="outline" 
+                  className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 mb-4"
+                  onClick={() => handleAction('CANCELLED')}
+                  disabled={isProcessingAction}
+                >
+                  {isProcessingAction ? 'Processing...' : 'Cancel Order'}
+                </Button>
+              )}
+
+              {order.status === 'COMPLETED' && (
+                <Button 
+                  variant="outline" 
+                  className="w-full text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 mb-4"
+                  onClick={() => handleAction('RETURN_REQUESTED')}
+                  disabled={isProcessingAction}
+                >
+                  {isProcessingAction ? 'Processing...' : 'Request Return'}
+                </Button>
+              )}
+
+              {['CANCELLED', 'RETURN_REQUESTED', 'RETURNED'].includes(order.status) && (
+                <div className="bg-slate-100 p-3 rounded-xl border border-slate-200 text-center text-sm font-medium text-slate-700 mb-4">
+                  {order.status === 'CANCELLED' && 'This order was cancelled.'}
+                  {order.status === 'RETURN_REQUESTED' && 'Return request pending.'}
+                  {order.status === 'RETURNED' && 'Order has been returned.'}
+                </div>
+              )}
 
               <div>
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Delivery Address</h4>

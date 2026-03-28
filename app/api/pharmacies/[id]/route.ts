@@ -14,7 +14,12 @@ export async function GET(
       where: { id },
       include: {
         owner: { select: { name: true, email: true, phone: true } },
-        inventory: { where: { stock: { gt: 0 } }, take: 5 } // Preview top items
+        inventory: { where: { stock: { gt: 0 }, medicine: { status: 'APPROVED' } }, take: 5 }, // Preview top approved items
+        reviews: {
+          include: { user: { select: { name: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }
       }
     });
 

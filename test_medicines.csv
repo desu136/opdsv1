@@ -1,0 +1,6 @@
+name,generic_name,category,description,requires_prescription,image_url
+Bulk Paracetamol 500mg,Acetaminophen,Pain Relief,Test description 1,No,
+Bulk Amoxicillin 250mg,Amoxicillin,Antibiotics,Test description 2,Yes,
+Bulk Vitamin C 1000mg,Ascorbic Acid,Vitamins,Test description 3,No,
+Bulk Missing Category,,,,,
+,No Name,Other,,,

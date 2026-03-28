@@ -1,0 +1,18 @@
+﻿.next/dev/types/validator.ts(197,39): error TS2307: Cannot find module '../../../app/forgot-password/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(341,39): error TS2307: Cannot find module '../../../app/reset-password/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(368,39): error TS2307: Cannot find module '../../../app/verify-email/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(413,39): error TS2307: Cannot find module '../../../app/api/auth/forgot-password/route.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(476,39): error TS2307: Cannot find module '../../../app/api/auth/reset-password/route.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(485,39): error TS2307: Cannot find module '../../../app/api/auth/verify-email/route.js' or its corresponding type declarations.
+app/api/auth/otp/request/route.ts(23,18): error TS2339: Property 'verificationToken' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/api/auth/otp/request/route.ts(27,18): error TS2339: Property 'verificationToken' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/api/auth/otp/verify/route.ts(16,38): error TS2339: Property 'verificationToken' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/api/auth/otp/verify/route.ts(29,20): error TS2339: Property 'verificationToken' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/api/auth/otp/verify/route.ts(34,18): error TS2339: Property 'verificationToken' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/api/auth/register/route.ts(13,18): error TS2339: Property 'verificationToken' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/api/auth/register/route.ts(17,18): error TS2339: Property 'verificationToken' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/pharmacy/dashboard/page.tsx(186,22): error TS2322: Type '(value: number) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType> & ((value: ValueType, name: NameType, item: TooltipPayloadEntry, index: number, payload: TooltipPayload) => ReactNode | [...])'.
+  Type '(value: number) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+    Types of parameters 'value' and 'value' are incompatible.
+      Type 'ValueType | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.

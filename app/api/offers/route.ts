@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const offers = await prisma.offer.findMany({
       where: whereClause,
       include: {
-        product: { select: { name: true, price: true, imageUrl: true } },
+        product: { include: { medicine: true } },
         pharmacy: { select: { name: true } }
       },
       orderBy: { createdAt: 'desc' }

@@ -12,8 +12,17 @@ export async function GET(
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
+        medicine: {
+          include: {
+            reviews: {
+              include: { user: { select: { name: true } } },
+              orderBy: { createdAt: 'desc' },
+              take: 10
+            }
+          }
+        },
         pharmacy: {
-          select: { id: true, name: true, address: true }
+          select: { id: true, name: true, address: true, averageRating: true, reviewCount: true }
         }
       }
     });
@@ -55,13 +64,8 @@ export async function PUT(
     const updated = await prisma.product.update({
       where: { id },
       data: {
-        name: body.name ?? authorizedProduct.name,
-        category: body.category ?? authorizedProduct.category,
-        description: body.description ?? authorizedProduct.description,
         price: body.price !== undefined ? parseFloat(body.price) : authorizedProduct.price,
         stock: body.stock !== undefined ? parseInt(body.stock, 10) : authorizedProduct.stock,
-        requiresPrescription: body.requiresPrescription ?? authorizedProduct.requiresPrescription,
-        imageUrl: body.imageUrl ?? authorizedProduct.imageUrl,
       }
     });
 

@@ -194,7 +194,7 @@ export const pharmacySidebarItems: SidebarItem[] = [
   { name: 'Order Queue', href: '/pharmacy/orders', icon: ShoppingCart },
   { name: 'Inventory', href: '/pharmacy/inventory', icon: Package },
   { name: 'Prescriptions', href: '/pharmacy/prescriptions', icon: ClipboardList },
-  { name: 'Special Offers', href: '/pharmacy/offers', icon: Tag },
+  { name: 'Promotions', href: '/pharmacy/offers', icon: Tag },
   { name: 'Branding', href: '/pharmacy/profile', icon: Store },
   { name: 'Settings', href: '/pharmacy/settings', icon: Settings },
 ];
@@ -205,6 +205,7 @@ export const adminSidebarItems: SidebarItem[] = [
   { name: 'Agents', href: '/admin/agents', icon: Truck },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'All Orders', href: '/admin/orders', icon: ShoppingCart },
+  { name: 'Medicines', href: '/admin/medicines', icon: Pill },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 

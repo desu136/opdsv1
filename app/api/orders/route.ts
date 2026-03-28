@@ -49,7 +49,7 @@ export async function GET(request: Request) {
         customer: { select: { name: true, phone: true } },
         pharmacy: { select: { name: true, phone: true } },
         items: {
-           include: { product: { select: { name: true } } }
+           include: { product: { include: { medicine: { select: { name: true } } } } }
         },
         prescription: true,
         delivery: true
@@ -99,14 +99,14 @@ export async function POST(request: Request) {
     let requiresRx = false;
 
     for (const item of items) {
-       const product = await prisma.product.findUnique({ where: { id: item.productId }});
+       const product = await prisma.product.findUnique({ where: { id: item.productId }, include: { medicine: true }});
        if (!product || product.pharmacyId !== pharmacyId) {
           return NextResponse.json({ error: `Invalid product ${item.productId}` }, { status: 400 });
        }
        if (product.stock < item.quantity) {
-          return NextResponse.json({ error: `Insufficient stock for ${product.name}` }, { status: 400 });
+          return NextResponse.json({ error: `Insufficient stock for ${product.medicine.name}` }, { status: 400 });
        }
-       if (product.requiresPrescription) requiresRx = true;
+       if (product.medicine.requiresPrescription) requiresRx = true;
 
        totalAmount += product.price * item.quantity;
        orderItemsData.push({
@@ -158,14 +158,16 @@ export async function POST(request: Request) {
        }
 
        // Deduct stock
+       const updatedProducts = [];
        for (const item of orderItemsData) {
-         await tx.product.update({
+         const updatedP = await tx.product.update({
            where: { id: item.productId },
-           data: { stock: { decrement: item.quantity } }
+           data: { stock: { decrement: item.quantity } }, include: { medicine: { select: { name: true } } }
          });
+         updatedProducts.push(updatedP);
        }
 
-       return newOrder;
+       return { newOrder, updatedProducts };
     });
 
     // Notify Pharmacy Owner
@@ -177,12 +179,25 @@ export async function POST(request: Request) {
         message: `You have a new order from ${payload.name || 'a customer'}.`,
         type: 'ORDER'
       });
+
+      // Send Low Stock Alerts for products that crossed the threshold
+      for (const p of order.updatedProducts) {
+        if ((p as any).stock <= (p as any).alertThreshold) {
+          await sendNotification({
+            userId: pharmacy.ownerId,
+            title: 'Low Stock Alert',
+            message: `Product "${(p as any).medicine?.name}" is running low. Only ${(p as any).stock} left in stock.`,
+            type: 'WARNING'
+          });
+        }
+      }
     }
 
-    return NextResponse.json(order, { status: 201 });
+    return NextResponse.json(order.newOrder, { status: 201 });
 
   } catch (error) {
     console.error('Create order error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

@@ -35,9 +35,12 @@ export default function PharmacyStorefrontPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('All');
+  const [ratingInput, setRatingInput] = useState(5);
+  const [commentInput, setCommentInput] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const { addItem, totalItems, totalPrice } = useCart();
 
-  const CATEGORIES = ['All', 'Pain Relief', 'Antibiotics', 'Vitamins', 'Personal Care', 'Baby', 'Heart'];
+  const CATEGORIES = ['All', 'Pain Relief', 'Antibiotics', 'Vitamins', 'Personal Care', 'Baby', 'Heart', 'Reviews'];
 
   const formatAddress = (addr: string) => {
     if (!addr) return 'Address not provided';
@@ -72,17 +75,19 @@ export default function PharmacyStorefrontPage() {
           
           const mappedProducts = inventoryData.map((p: any) => ({
             id: p.id,
-            name: p.name,
-            genericName: p.genericName,
+            name: p.medicine?.name || 'Unknown',
+            genericName: p.medicine?.genericName,
             price: p.price,
-            imageUrl: p.imageUrl,
+            imageUrl: p.medicine?.imageUrl,
             pharmacyId: p.pharmacy.id,
             pharmacyName: p.pharmacy.name,
             distance: p.pharmacy.distance,
-            requiresPrescription: p.requiresPrescription,
+            requiresPrescription: p.medicine?.requiresPrescription,
             inStock: p.stock > 0,
-            category: p.category,
-            offers: p.offers
+            category: p.medicine?.category,
+            offers: p.offers,
+            averageRating: p.medicine?.averageRating,
+            reviewCount: p.medicine?.reviewCount
           }));
           
           setProducts(mappedProducts);
@@ -114,6 +119,41 @@ export default function PharmacyStorefrontPage() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (p.genericName && p.genericName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      alert("Please sign in to leave a review.");
+      return;
+    }
+    setIsSubmittingReview(true);
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pharmacyId: id,
+          rating: ratingInput,
+          comment: commentInput
+        })
+      });
+      if (res.ok) {
+        setCommentInput('');
+        setRatingInput(5);
+        // Soft refresh pharmacy data
+        const updatedRes = await fetch(`/api/pharmacies/${id}`);
+        if(updatedRes.ok) setPharmacy(await updatedRes.json());
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit review');
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -191,8 +231,8 @@ export default function PharmacyStorefrontPage() {
           {/* Info Row */}
           <div className="px-4 py-6 flex items-center justify-between text-sm border-b border-slate-50 mt-4 overflow-x-auto gap-4">
              <div className="flex flex-col items-center gap-0.5 shrink-0">
-                <span className="font-bold flex items-center gap-1 text-slate-900"><Star className="h-4 w-4 text-amber-400 fill-amber-400" /> 4.8</span>
-                <span className="text-[10px] text-slate-500">100+ Reviews</span>
+                <span className="font-bold flex items-center gap-1 text-slate-900"><Star className="h-4 w-4 text-amber-400 fill-amber-400" /> {pharmacy.averageRating ? pharmacy.averageRating.toFixed(1) : '0.0'}</span>
+                <span className="text-[10px] text-slate-500">{pharmacy.reviewCount || 0} Reviews</span>
              </div>
              <div className="w-px h-8 bg-slate-200 shrink-0"></div>
              <div className="flex flex-col items-center gap-0.5 shrink-0">
@@ -244,7 +284,61 @@ export default function PharmacyStorefrontPage() {
           <h2 className="text-lg font-black text-slate-900 mb-4">{activeTab === 'All' ? 'Available Items' : activeTab}</h2>
 
           <div className="flex flex-col gap-3">
-            {filteredProducts.length > 0 ? (
+            {activeTab === 'Reviews' ? (
+              <div className="mt-2">
+                 {/* Reviews List */}
+                 {pharmacy.reviews && pharmacy.reviews.length > 0 ? (
+                   <div className="space-y-4 mb-6">
+                     {pharmacy.reviews.map((review: any) => (
+                       <div key={review.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                         <div className="flex items-center justify-between mb-2">
+                           <span className="font-bold text-sm text-slate-800">{review.user?.name || 'Anonymous User'}</span>
+                           <div className="flex">
+                             {[...Array(5)].map((_, i) => (
+                               <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-200'}`} />
+                             ))}
+                           </div>
+                         </div>
+                         {review.comment && <p className="text-sm text-slate-600">{review.comment}</p>}
+                         <p className="text-[10px] text-slate-400 mt-2">{new Date(review.createdAt).toLocaleDateString()}</p>
+                       </div>
+                     ))}
+                   </div>
+                 ) : (
+                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center mb-6">
+                     <p className="text-sm text-slate-500 font-medium">No reviews yet for this pharmacy.</p>
+                   </div>
+                 )}
+
+                 {/* Write Review Form */}
+                 {user?.role === 'CUSTOMER' && (
+                   <form onSubmit={submitReview} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                     <h4 className="font-bold text-sm text-slate-800 mb-3">Write a Review</h4>
+                     <div className="flex items-center gap-1 mb-4">
+                       {[1, 2, 3, 4, 5].map((star) => (
+                         <button
+                           key={star}
+                           type="button"
+                           onClick={() => setRatingInput(star)}
+                           className="focus:outline-none transition-transform hover:scale-110"
+                         >
+                           <Star className={`w-6 h-6 ${star <= ratingInput ? 'text-amber-500 fill-amber-500' : 'text-slate-200 fill-slate-50'}`} />
+                         </button>
+                       ))}
+                     </div>
+                     <textarea
+                       value={commentInput}
+                       onChange={(e) => setCommentInput(e.target.value)}
+                       placeholder="Share your experience (optional)"
+                       className="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white mb-3 min-h-[80px]"
+                     />
+                     <Button type="submit" variant="primary" size="sm" disabled={isSubmittingReview}>
+                       {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                     </Button>
+                   </form>
+                 )}
+              </div>
+            ) : filteredProducts.length > 0 ? (
               filteredProducts.map(product => {
                 const offer = (product as any).offers?.[0];
                 const discountedPrice = offer ? product.price * (1 - offer.discountPct/100) : null;

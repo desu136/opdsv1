@@ -14,8 +14,6 @@ export const BottomNav = () => {
   if (
     pathname.includes('/login') || 
     pathname.includes('/register') || 
-    pathname.includes('/forgot-password') ||
-    pathname.includes('/reset-password') ||
     pathname.includes('/admin') ||
     pathname.includes('/agent') ||
     pathname.includes('/pharmacy/dashboard') ||

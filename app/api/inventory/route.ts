@@ -13,17 +13,33 @@ export async function GET(request: Request) {
 
     const whereClause: any = {};
     if (pharmacyId) whereClause.pharmacyId = pharmacyId;
-    if (category) whereClause.category = category;
-    if (search) {
-      whereClause.name = { contains: search };
+    
+    // Filter by medicine properties
+    if (category || search) {
+      whereClause.medicine = {};
+      if (category) whereClause.medicine.category = category;
+      if (search) whereClause.medicine.name = { contains: search };
     }
 
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
 
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    let payload: any = null;
+    try {
+      if (token) payload = verifyToken(token);
+    } catch (e) {}
+
+    // Enforce APPROVED only, unless it's a pharmacist checking their own inventory
+    if (!(payload?.role === 'PHARMACIST' && payload.pharmacyId && payload.pharmacyId === pharmacyId)) {
+      whereClause.medicine = { ...whereClause.medicine, status: 'APPROVED' };
+    }
+
     let products = await prisma.product.findMany({
       where: whereClause,
       include: {
+        medicine: true,
         pharmacy: { select: { name: true, id: true, lat: true, lng: true } },
         offers: {
           where: {
@@ -80,22 +96,33 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, category, description, price, stock, requiresPrescription, imageUrl } = body;
+    const { medicineId, price, stock } = body;
 
-    if (!name || !category || price === undefined || stock === undefined) {
-      return NextResponse.json({ error: 'Missing required product fields' }, { status: 400 });
+    if (!medicineId || price === undefined || stock === undefined) {
+      return NextResponse.json({ error: 'Missing required inventory fields' }, { status: 400 });
+    }
+
+    // Check if the pharmacy already has this medicine in their inventory
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        pharmacyId: payload.pharmacyId,
+        medicineId: medicineId
+      }
+    });
+
+    if (existingProduct) {
+      return NextResponse.json({ error: 'This medicine is already in your inventory. Please update the existing entry.' }, { status: 400 });
     }
 
     const newProduct = await prisma.product.create({
       data: {
         pharmacyId: payload.pharmacyId,
-        name,
-        category,
-        description,
+        medicineId,
         price: parseFloat(price.toString()),
         stock: parseInt(stock.toString(), 10),
-        requiresPrescription: Boolean(requiresPrescription),
-        imageUrl
+      },
+      include: {
+        medicine: true
       }
     });
 

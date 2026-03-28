@@ -27,6 +27,8 @@ model User {
   deliveries    Delivery[]
   orders        Order[]
   pharmacy      Pharmacy?
+  reviews       Review[]
+  createdMedicines Medicine[] @relation("MedicineCreator")
 }
 
 model Address {
@@ -63,12 +65,15 @@ model Pharmacy {
   owner              User          @relation(fields: [ownerId], references: [id])
   inventory          Product[]
   offers             Offer[]
+  reviews            Review[]
+  averageRating      Float         @default(0)
+  reviewCount        Int           @default(0)
 }
 
 model Offer {
   id          String   @id @default(uuid())
   pharmacyId  String
-  productId   String
+  productId   String?
   title       String
   discountPct Float
   startDate   DateTime
@@ -77,28 +82,49 @@ model Offer {
   status      String   @default("ACTIVE")
   createdAt   DateTime @default(now())
   pharmacy    Pharmacy @relation(fields: [pharmacyId], references: [id])
-  product     Product  @relation(fields: [productId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
 
   @@index([pharmacyId], map: "Offer_pharmacyId_fkey")
   @@index([productId], map: "Offer_productId_fkey")
 }
 
+model Medicine {
+  id                   String      @id @default(uuid())
+  name                 String      @unique
+  genericName          String?
+  category             String
+  description          String?     @db.Text
+  dosage               String?
+  sideEffects          String?     @db.Text
+  requiresPrescription Boolean     @default(false)
+  imageUrl             String?
+  status               MedicineStatus @default(PENDING_APPROVAL)
+  creatorId            String?
+  averageRating        Float       @default(0)
+  reviewCount          Int         @default(0)
+  createdAt            DateTime    @default(now())
+  
+  creator              User?       @relation("MedicineCreator", fields: [creatorId], references: [id])
+  inventory            Product[]
+  reviews              Review[]
+}
+
 model Product {
   id                   String      @id @default(uuid())
   pharmacyId           String
-  name                 String
-  category             String
-  description          String?
+  medicineId           String
   price                Float
   stock                Int
-  requiresPrescription Boolean     @default(false)
-  imageUrl             String?
+  alertThreshold       Int         @default(10)
   createdAt            DateTime    @default(now())
+  
   orderItems           OrderItem[]
   pharmacy             Pharmacy    @relation(fields: [pharmacyId], references: [id])
+  medicine             Medicine    @relation(fields: [medicineId], references: [id], onDelete: Cascade)
   offers               Offer[]
 
   @@index([pharmacyId], map: "Product_pharmacyId_fkey")
+  @@index([medicineId], map: "Product_medicineId_fkey")
 }
 
 model Order {
@@ -153,6 +179,8 @@ model Delivery {
   status       DeliveryStatus @default(PENDING)
   pickupTime   DateTime?
   deliveryTime DateTime?
+  currentLat   Float?
+  currentLng   Float?
   agent        User?          @relation(fields: [agentId], references: [id])
   order        Order          @relation(fields: [orderId], references: [id])
 
@@ -169,22 +197,29 @@ model Notification {
   createdAt DateTime @default(now())
 }
 
-model VerificationToken {
+model OTP {
   id         String   @id @default(uuid())
-  identifier String
-  token      String   @unique
+  identifier String   // phone number
+  code       String
   expires    DateTime
-
-  @@unique([identifier, token])
 }
 
-model PasswordResetToken {
-  id      String   @id @default(uuid())
-  email   String
-  token   String   @unique
-  expires DateTime
+model Review {
+  id          String   @id @default(uuid())
+  userId      String
+  medicineId  String?
+  pharmacyId  String?
+  rating      Int
+  comment     String?  @db.Text
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  medicine    Medicine? @relation(fields: [medicineId], references: [id])
+  pharmacy    Pharmacy? @relation(fields: [pharmacyId], references: [id])
 
-  @@unique([email, token])
+  @@index([userId], map: "Review_userId_fkey")
+  @@index([medicineId], map: "Review_medicineId_fkey")
+  @@index([pharmacyId], map: "Review_pharmacyId_fkey")
 }
 
 enum Role {
@@ -200,6 +235,12 @@ enum AccountStatus {
   PENDING_REVIEW
 }
 
+enum MedicineStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
 enum OrderStatus {
   PENDING
   PREPARING
@@ -207,6 +248,8 @@ enum OrderStatus {
   IN_TRANSIT
   COMPLETED
   CANCELLED
+  RETURN_REQUESTED
+  RETURNED
 }
 
 enum PrescriptionStatus {

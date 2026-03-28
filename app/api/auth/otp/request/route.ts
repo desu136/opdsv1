@@ -20,14 +20,14 @@ export async function POST(request: Request) {
     const expires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiry
 
     // Clean up old tokens for this phone
-    await prisma.verificationToken.deleteMany({
+    await prisma.oTP.deleteMany({
       where: { identifier: phone }
     });
 
-    await prisma.verificationToken.create({
+    await prisma.oTP.create({
       data: {
         identifier: phone,
-        token: otp, // Storing plain text for prototype, should hash in prod
+        code: otp, // Storing plain text for prototype, should hash in prod
         expires
       }
     });

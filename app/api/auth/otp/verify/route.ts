@@ -13,10 +13,10 @@ export async function POST(request: Request) {
     }
 
     // 1. Verify OTP
-    const storedToken = await prisma.verificationToken.findFirst({
+    const storedToken = await prisma.oTP.findFirst({
       where: {
         identifier: phone,
-        token: code,
+        code: code,
       }
     });
 
@@ -26,12 +26,12 @@ export async function POST(request: Request) {
 
     if (new Date() > storedToken.expires) {
       // Clean up expired token
-      await prisma.verificationToken.delete({ where: { id: storedToken.id } });
+      await prisma.oTP.delete({ where: { id: storedToken.id } });
       return NextResponse.json({ error: 'OTP has expired. Please request a new one.' }, { status: 400 });
     }
 
     // Valid OTP, delete it so it can't be used again
-    await prisma.verificationToken.delete({ where: { id: storedToken.id } });
+    await prisma.oTP.delete({ where: { id: storedToken.id } });
 
     // 2. Find or Create User
     let user = await prisma.user.findUnique({

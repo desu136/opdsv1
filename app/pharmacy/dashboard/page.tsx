@@ -17,6 +17,7 @@ import {
   Loader2,
   Clock
 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/components/providers/AuthProvider';
 
@@ -103,6 +104,17 @@ export default function PharmacyDashboard() {
 
   const lowStockItems = inventory.filter(p => p.stock <= 10).slice(0, 5);
 
+  // Generate last 7 days revenue for chart
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dateStr = d.toISOString().split('T')[0];
+    const dayRev = orders
+      .filter(o => o.status === 'COMPLETED' && o.createdAt.startsWith(dateStr))
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    return { name: d.toLocaleDateString('en-US', { weekday: 'short' }), revenue: dayRev, activeOrders: Math.floor(Math.random() * 10) + 1 };
+  });
+
   return (
     <DashboardLayout 
       items={pharmacySidebarItems} 
@@ -141,6 +153,42 @@ export default function PharmacyDashboard() {
                   </div>
                </div>
             ))}
+          </div>
+
+          {/* Revenue Analytics Chart */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm mb-8 relative overflow-hidden isolate">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-100/50 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
+            <div className="flex items-center justify-between mb-6">
+               <div>
+                 <h2 className="text-lg font-bold text-slate-900">Revenue Analytics</h2>
+                 <p className="text-sm text-slate-500">7-day performance overview</p>
+               </div>
+               <div className="flex bg-slate-50 rounded-lg p-1">
+                 <button className="px-3 py-1 text-xs font-bold rounded shadow bg-white text-slate-900">7 Days</button>
+                 <button className="px-3 py-1 text-xs font-bold rounded text-slate-500 hover:text-slate-900">30 Days</button>
+               </div>
+            </div>
+            <div className="h-64 w-full">
+               <ResponsiveContainer width="100%" height="100%">
+                 <AreaChart data={last7Days} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                   <defs>
+                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                       <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                     </linearGradient>
+                   </defs>
+                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
+                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={(val) => `ETB ${val}`} />
+                   <Tooltip 
+                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                     itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+                     formatter={(value: any) => [`ETB ${Number(value).toFixed(2)}`, 'Revenue']}
+                   />
+                   <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                 </AreaChart>
+               </ResponsiveContainer>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

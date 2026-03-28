@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/components/providers/CartProvider';
+import { useAuth } from '@/components/providers/AuthProvider';
 import { 
   ShieldCheck, 
   Store, 
@@ -17,7 +19,8 @@ import {
   ChevronRight,
   Info,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Star
 } from 'lucide-react';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -27,14 +30,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [ratingInput, setRatingInput] = useState(5);
+  const [commentInput, setCommentInput] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const { addItem } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
   
   const handleAddToCart = () => {
     if (!product) return;
     addItem({
       ...product,
-      pharmacyId: product.pharmacyId || product.pharmacy?.id
+      pharmacyId: product.pharmacyId || product.pharmacy?.id,
+      quantity
     });
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    addItem({
+      ...product,
+      pharmacyId: product.pharmacyId || product.pharmacy?.id,
+      quantity
+    });
+    router.push('/checkout');
   };
   
   useEffect(() => {
@@ -43,6 +62,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         const res = await fetch(`/api/inventory/${productId}`);
         if (res.ok) {
           const data = await res.json();
+          if (data.medicine) {
+            data.name = data.medicine.name;
+            data.genericName = data.medicine.genericName;
+            data.category = data.medicine.category;
+            data.description = data.medicine.description;
+            data.requiresPrescription = data.medicine.requiresPrescription;
+            data.imageUrl = data.medicine.imageUrl;
+            data.averageRating = data.medicine.averageRating;
+            data.reviewCount = data.medicine.reviewCount;
+            data.dosage = data.medicine.dosage;
+            data.sideEffects = data.medicine.sideEffects;
+          }
           setProduct(data);
         } else {
           setError('Product not found');
@@ -63,6 +94,41 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const increaseQuantity = () => {
     setQuantity(quantity + 1);
+  };
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      alert("Please sign in to leave a review.");
+      return;
+    }
+    setIsSubmittingReview(true);
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          rating: ratingInput,
+          comment: commentInput
+        })
+      });
+      if (res.ok) {
+        setCommentInput('');
+        setRatingInput(5);
+        // Refresh product to show new review
+        const updatedRes = await fetch(`/api/inventory/${productId}`);
+        if(updatedRes.ok) setProduct(await updatedRes.json());
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit review');
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   if (isLoading) {
@@ -169,10 +235,22 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </h1>
               
               {product.genericName && (
-                <p className="text-sm lg:text-lg text-slate-500 font-medium mb-6">
+                <p className="text-sm lg:text-lg text-slate-500 font-medium mb-3">
                   {product.genericName}
                 </p>
               )}
+
+              {/* Product Rating */}
+              {product.averageRating !== undefined && product.averageRating > 0 && (
+                <div className="flex items-center gap-2 mb-6 text-left">
+                  <div className="flex bg-amber-50 px-2 py-1 rounded-full items-center gap-1 border border-amber-100">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                    <span className="text-sm font-black text-amber-700">{product.averageRating.toFixed(1)}</span>
+                  </div>
+                  <span className="text-xs font-bold text-slate-400">({product.reviewCount} Reviews)</span>
+                </div>
+              )}
+              {(!product.averageRating || product.averageRating === 0) && <div className="mb-6"></div>}
 
               {/* Pharmacy Info */}
               <Link href={`/pharmacies/${product.pharmacy?.id}`} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-8 active:scale-[0.98] transition-all group">
@@ -219,55 +297,137 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </p>
                   </div>
                 </div>
+
+                {/* Reviews Section */}
+                <div className="mt-8 pt-8 border-t border-slate-100">
+                   <h3 className="text-lg font-bold text-slate-900 mb-4">Customer Reviews</h3>
+                   
+                   {/* Reviews List */}
+                   {product.reviews && product.reviews.length > 0 ? (
+                     <div className="space-y-4 mb-6">
+                       {product.reviews.map((review: any) => (
+                         <div key={review.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                           <div className="flex items-center justify-between mb-2">
+                             <span className="font-bold text-sm text-slate-800">{review.user?.name || 'Anonymous User'}</span>
+                             <div className="flex">
+                               {[...Array(5)].map((_, i) => (
+                                 <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-200'}`} />
+                               ))}
+                             </div>
+                           </div>
+                           {review.comment && <p className="text-sm text-slate-600">{review.comment}</p>}
+                           <p className="text-[10px] text-slate-400 mt-2">{new Date(review.createdAt).toLocaleDateString()}</p>
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center mb-6">
+                       <p className="text-sm text-slate-500 font-medium">No reviews yet. Be the first to review this product!</p>
+                     </div>
+                   )}
+
+                   {/* Write Review Form */}
+                   {user?.role === 'CUSTOMER' && (
+                     <form onSubmit={submitReview} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                       <h4 className="font-bold text-sm text-slate-800 mb-3">Write a Review</h4>
+                       <div className="flex items-center gap-1 mb-4">
+                         {[1, 2, 3, 4, 5].map((star) => (
+                           <button
+                             key={star}
+                             type="button"
+                             onClick={() => setRatingInput(star)}
+                             className="focus:outline-none transition-transform hover:scale-110"
+                           >
+                             <Star className={`w-6 h-6 ${star <= ratingInput ? 'text-amber-500 fill-amber-500' : 'text-slate-200 fill-slate-50'}`} />
+                           </button>
+                         ))}
+                       </div>
+                       <textarea
+                         value={commentInput}
+                         onChange={(e) => setCommentInput(e.target.value)}
+                         placeholder="Share your experience (optional)"
+                         className="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white mb-3 min-h-[80px]"
+                       />
+                       <Button type="submit" variant="primary" size="sm" disabled={isSubmittingReview}>
+                         {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                       </Button>
+                     </form>
+                   )}
+                </div>
+
               </div>
             </div>
           </div>
         </div>
 
-        {/* Mobile Sticky Bottom Bar for Add to Cart */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)] p-4 pb-safe z-50">
+        {/* Mobile Sticky Bottom Bar Custom Redesign for Instant Purchase */}
+        <div className="fixed bottom-[68px] md:bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.15)] p-3 pb-safe z-50">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xl font-black text-slate-900">
-                {(product.price * quantity).toLocaleString('en-ET', { style: 'currency', currency: 'ETB' })}
-              </span>
-              
-              {/* Quantity Selector */}
-              <div className="flex items-center bg-slate-100 rounded-full p-1 border border-slate-200">
+            
+            <div className="flex items-center justify-between gap-3">
+              {/* Left Side: Quantity Selector */}
+              <div className="flex items-center bg-slate-100 border border-slate-200/60 rounded-[18px] p-1 h-14 shrink-0 shadow-inner">
                 <button 
                   onClick={decreaseQuantity}
-                  className="w-8 h-8 flex items-center justify-center text-slate-600 bg-white hover:bg-slate-50 rounded-full shadow-sm transition-colors focus:outline-none disabled:opacity-50"
+                  className="w-10 h-10 flex items-center justify-center text-slate-500 bg-white hover:bg-slate-50 hover:text-slate-800 rounded-xl shadow-sm transition-all focus:outline-none disabled:opacity-50"
                   disabled={quantity <= 1}
                 >
-                  <Minus className="h-4 w-4" />
+                  <Minus className="h-5 w-5" />
                 </button>
-                <span className="w-10 text-center font-bold text-sm text-slate-900">
+                <span className="w-10 text-center font-black text-lg text-slate-900">
                   {quantity}
                 </span>
                 <button 
                   onClick={increaseQuantity}
-                  className="w-8 h-8 flex items-center justify-center text-white bg-slate-900 hover:bg-black rounded-full shadow-sm transition-colors focus:outline-none"
+                  className="w-10 h-10 flex items-center justify-center text-white bg-slate-800 hover:bg-black rounded-xl shadow-sm transition-all focus:outline-none"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-5 w-5" />
                 </button>
+              </div>
+
+              {/* Right Side: Actions */}
+              <div className="flex items-center gap-2 flex-1">
+                {/* Secondary Add to Cart */}
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddToCart} 
+                  className="h-14 w-14 shrink-0 rounded-[18px] border-slate-200 bg-white shadow-sm hover:border-primary-300 hover:text-primary-600 focus:ring-2 focus:ring-primary-500/20 active:scale-95 transition-all p-0 flex items-center justify-center"
+                  title="Add to Cart"
+                  disabled={product.stock <= 0}
+                >
+                  <ShoppingCart className="h-6 w-6" />
+                </Button>
+
+                {/* Primary Buy Now */}
+                <Button 
+                  variant="primary" 
+                  className="flex-1 h-14 rounded-[18px] shadow-lg shadow-primary-600/30 active:scale-95 transition-all group overflow-hidden relative"
+                  onClick={handleBuyNow}
+                  disabled={product.stock <= 0}
+                >
+                  {/* Subtle shine effect on the button */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-0"></div>
+                  
+                  <span className="flex flex-col items-center justify-center relative z-10 w-full">
+                    <span className="text-base font-black uppercase tracking-widest leading-none mb-1">
+                      {product.stock > 0 ? 'Buy Now' : 'Out of Stock'}
+                    </span>
+                    <span className="text-[11px] font-bold text-primary-100 uppercase tracking-wide leading-none">
+                      {(product.price * quantity).toLocaleString('en-ET')} ETB
+                    </span>
+                  </span>
+                </Button>
               </div>
             </div>
 
-            <Button 
-              variant="primary" 
-              className="w-full text-base h-12 rounded-xl font-bold"
-              disabled={product.stock <= 0}
-              onClick={handleAddToCart}
-            >
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-            </Button>
-            
+            {/* Prescription Indicator below if required */}
             {product.requiresPrescription && (
-              <p className="text-[10px] text-red-500 font-bold mt-2 text-center uppercase tracking-wider">
-                <Info className="h-3 w-3 inline mr-1" /> Prescription verified at checkout
-              </p>
+              <div className="mt-2.5 bg-red-50 text-red-600 py-1.5 px-3 rounded-xl border border-red-100 flex items-center justify-center gap-1.5 animate-in slide-in-from-bottom-2 fade-in duration-300">
+                <ShieldCheck className="h-4 w-4 shrink-0" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Prescription Upload Required</span>
+              </div>
             )}
+            
           </div>
         </div>
       </main>

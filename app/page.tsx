@@ -54,6 +54,13 @@ export default function Home() {
   const [nearbyPharmacies, setNearbyPharmacies] = useState<any[]>([]);
   const [specialOffers, setSpecialOffers] = useState<any[]>([]);
   const [isLocating, setIsLocating] = useState(false);
+  
+  // Slider State
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const promotionBanners = specialOffers.filter((o: any) => !o.productId);
+  const medicineOffers = specialOffers.filter((o: any) => o.productId);
+  const displayBanners = promotionBanners.length > 0 ? promotionBanners : PROMOS;
 
   const formatAddress = (addr: string) => {
     if (!addr) return 'Address not provided';
@@ -103,6 +110,15 @@ export default function Home() {
     }
   };
 
+  // Auto-Slider Effect
+  useEffect(() => {
+    if (displayBanners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % displayBanners.length);
+    }, 4000); // 4 seconds
+    return () => clearInterval(interval);
+  }, [displayBanners.length]);
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
@@ -126,19 +142,68 @@ export default function Home() {
         </section>
 
         {/* Promotional Slider */}
-        <section className="mt-4 px-4 overflow-hidden">
-          <div className="flex gap-3 overflow-x-auto snap-x hide-scrollbar pb-2">
-            {PROMOS.map((promo) => (
-              <div key={promo.id} className={`relative flex-none w-[85vw] max-w-sm ${promo.bg} rounded-2xl p-5 text-white snap-center overflow-hidden shadow-sm`}>
-                <div className="relative z-10 w-2/3">
-                  <span className="inline-block bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase mb-2">Offer</span>
-                  <h3 className="text-xl font-bold leading-tight mb-1">{promo.title}</h3>
-                  <p className="text-sm font-medium opacity-90">{promo.discount}</p>
+        <section className="mt-4 px-4 overflow-hidden relative">
+          <div 
+            className="flex transition-transform duration-700 ease-in-out snap-x snap-mandatory"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            onTouchStart={(e) => {
+              // Basic swipe handling
+              const startX = e.touches[0].clientX;
+              const handleTouchEnd = (e2: TouchEvent) => {
+                const endX = e2.changedTouches[0].clientX;
+                if (startX - endX > 50) setCurrentSlide(p => (p + 1) % displayBanners.length);
+                if (startX - endX < -50) setCurrentSlide(p => (p - 1 + displayBanners.length) % displayBanners.length);
+                document.removeEventListener('touchend', handleTouchEnd);
+              };
+              document.addEventListener('touchend', handleTouchEnd);
+            }}
+          >
+            {displayBanners.map((promo: any, idx) => {
+              const isActive = idx === currentSlide;
+              return (
+                <div 
+                  key={promo.id} 
+                  onClick={() => promo.pharmacyId ? router.push(`/pharmacies/${promo.pharmacyId}`) : null}
+                  className={`relative flex-none w-full min-w-full ${promo.bg || 'bg-primary-600'} rounded-2xl p-6 text-white snap-center overflow-hidden shadow-sm cursor-pointer transition-transform duration-700 ${isActive ? 'scale-100' : 'scale-[0.98]'}`}
+                  style={promo.imageUrl ? {
+                    backgroundImage: `url(${promo.imageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  } : {}}
+                >
+                  {/* Subtle Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent z-0"></div>
+                  
+                  <div className="relative z-10 w-3/4 flex flex-col justify-center h-28 transform transition-transform duration-500">
+                    <span className="inline-block bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase mb-2 w-fit">
+                      {promo.pharmacy ? promo.pharmacy.name : 'Offer'}
+                    </span>
+                    <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{promo.title}</h3>
+                    <p className="text-sm font-bold text-white bg-rose-500/90 w-fit px-3 py-1 rounded-full shadow-lg border border-rose-400/50">
+                      {promo.discountPct ? `${promo.discountPct}% OFF` : promo.discount}
+                    </p>
+                  </div>
+                  
+                  {!promo.imageUrl && (
+                    <>
+                      <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-2xl z-0"></div>
+                      <div className="absolute top-4 right-4 w-16 h-16 bg-white/20 rounded-full blur-xl z-0"></div>
+                    </>
+                  )}
                 </div>
-                {/* Decorative circles to represent graphics as we don't have images guaranteed */}
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="absolute top-4 right-4 w-16 h-16 bg-white/20 rounded-full blur-xl"></div>
-              </div>
+              );
+            })}
+          </div>
+          
+          {/* Pagination Dots */}
+          <div className="flex justify-center items-center gap-1.5 mt-3">
+            {displayBanners.map((_, idx) => (
+              <button 
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentSlide ? 'w-4 bg-primary-600' : 'w-1.5 bg-slate-300 hover:bg-slate-400'}`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
             ))}
           </div>
         </section>
@@ -169,34 +234,30 @@ export default function Home() {
         </section>
 
         {/* Special Offers Section */}
-        <section className="mt-4">
-          <div className="px-4 flex justify-between items-end mb-3 text-slate-900">
-             <h2 className="text-lg font-bold flex items-center gap-2"><Tag className="w-5 h-5 text-rose-500" /> Special Offers</h2>
-             <span className="text-xs font-bold text-primary-600">See all</span>
-          </div>
-          <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 pb-4">
-            {specialOffers.length > 0 ? (
-              specialOffers.map((offer) => (
+        {medicineOffers.length > 0 && (
+          <section className="mt-4">
+            <div className="px-4 flex justify-between items-end mb-3 text-slate-900">
+               <h2 className="text-lg font-bold flex items-center gap-2"><Tag className="w-5 h-5 text-rose-500" /> Special Offers</h2>
+               <Link href="/products?offers=true" className="text-xs font-bold text-primary-600">See all</Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 pb-4">
+              {medicineOffers.map((offer) => (
                 <Link href={`/pharmacies/${offer.pharmacyId}`} key={offer.id} className="flex-none w-36 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col p-2.5 active:scale-95 transition-all">
                   <div className="relative aspect-square w-full bg-slate-50 rounded-xl mb-2 flex items-center justify-center overflow-hidden">
-                    <img src={offer.imageUrl || offer.product?.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop'} alt={offer.title} className="w-full h-full object-cover" />
+                    <img loading="lazy" src={offer.imageUrl || offer.product?.medicine?.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop'} alt={offer.title} className="w-full h-full object-cover" />
                     <div className="absolute top-1 left-1 bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm">-{offer.discountPct}%</div>
                   </div>
-                  <h3 className="text-xs font-black text-slate-900 line-clamp-1">{offer.title}</h3>
+                  <h3 className="text-xs font-black text-slate-900 line-clamp-1">{offer.product?.medicine?.name || offer.title}</h3>
                   <p className="text-[9px] text-slate-500 mb-1 line-clamp-1 font-bold">{offer.pharmacy?.name}</p>
                   <div className="mt-auto flex items-center gap-1.5">
                     <span className="text-xs font-black text-primary-600">{offer.product?.price ? (offer.product.price * (1 - offer.discountPct/100)).toFixed(0) : '0'} ETB</span>
                     <span className="text-[9px] font-medium text-slate-400 line-through">{offer.product?.price}</span>
                   </div>
                 </Link>
-              ))
-            ) : (
-              [1, 2, 3].map((i) => (
-                <div key={i} className="flex-none w-36 h-44 bg-slate-50 rounded-2xl border border-slate-100 animate-pulse"></div>
-              ))
-            )}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Nearby Pharmacies Section (Vertical App List) */}
         <section className="mt-4 px-4 pb-6">
